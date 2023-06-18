@@ -35,9 +35,26 @@ namespace GameEngine
             float dAlpha = (1 - src.a) * dst.a;
             return dst * dAlpha + src * sAlpha;
         }
+        
         public static Color MultiplyBlend(this Color src, Color dst)
         {
             return (src * dst);
+        }
+
+        public static bool Compare(this Color src, Color dst, float tolerance = 0.1f)
+        {
+            bool vr = Mathf.Abs(src.r - dst.r)/1.0f <= Mathf.Clamp01(tolerance);
+            bool vg = Mathf.Abs(src.g - dst.g)/1.0f <= Mathf.Clamp01(tolerance);
+            bool vb = Mathf.Abs(src.b - dst.b)/1.0f <= Mathf.Clamp01(tolerance);
+            bool va = Mathf.Abs(src.a - dst.a)/1.0f <= Mathf.Clamp01(tolerance);
+
+            return (vr && vg && vb && va);
+        }
+
+        public static bool CompareRGB(this Color src, Color dst, float tolerance = 0.1f)
+        {
+            src.a = dst.a = 0.0f;
+            return Compare(src, dst, tolerance);
         }
         #endregion
 
