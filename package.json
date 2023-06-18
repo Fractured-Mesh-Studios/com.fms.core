@@ -8,6 +8,10 @@
   "documentationUrl": "https://example.com/",
   "changelogUrl": "https://example.com/changelog.html",
   "licensesUrl": "https://example.com/licensing.html",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JorgeGerones/com.jng.core.git"
+  },
   "keywords": [
     "GameEngine",
     "Core",
