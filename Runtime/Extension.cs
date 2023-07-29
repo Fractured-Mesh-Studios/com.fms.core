@@ -11,6 +11,7 @@ namespace GameEngine
         public static string Bold(this string msg) { return "<b>" + msg + "</b>"; }
         public static string Italic(this string msg) { return "<i>" + msg + "</i>"; }
         public static string Size(this string msg, int size) { return "<size=" + size + ">" + msg + "</size>"; }
+        public static string CopyToClipboard(this string msg) { GUIUtility.systemCopyBuffer = msg; return GUIUtility.systemCopyBuffer; }
         #endregion
 
         #region Color
