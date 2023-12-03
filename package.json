@@ -2,7 +2,7 @@
   "name": "com.fms.core",
   "version": "1.0.0",
   "displayName": "Core",
-  "description": "This is the base scripts for all of addons",
+  "description": "Author: Jorge Nauel Gerones.\nThis is the base scripts for all of addons",
   "unity": "2021.1",
   "unityRelease": "0b5",
   "documentationUrl": "https://example.com/",
@@ -18,7 +18,7 @@
     "JNG"
   ],
   "author": {
-    "name": "Jorge Nahuel Gerones",
+    "name": "Fractured Mesh Studios",
     "email": "gerones.jorge@gmail.com",
     "url": "https://www.unity3d.com"
   },
