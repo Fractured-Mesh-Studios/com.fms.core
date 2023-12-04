@@ -8,10 +8,10 @@ public class DataPersistanceManager : MonoBehaviour
 {
     public static DataPersistanceManager Instance { get; private set; }
 
-    public PersistanceData Data = null;
-    public string FileName = "";
+    public PersistanceData data = null;
+    public string filename = "";
 
-    private FileDataHandler FileDataHandler;
+    private FileDataHandler m_fileDataHandler;
 
     void Awake()
     {
@@ -29,22 +29,22 @@ public class DataPersistanceManager : MonoBehaviour
 
     public void New() 
     {
-        Data = new PersistanceData();
-        FileDataHandler = new FileDataHandler(Application.persistentDataPath, FileName);
+        data = new PersistanceData();
+        m_fileDataHandler = new FileDataHandler(Application.persistentDataPath, filename);
     }
 
     public void Load()
     { 
-        if(Data == null)
+        if(data == null)
         {
             New();
             return;
         }
 
-        Data = FileDataHandler.Load();
+        data = m_fileDataHandler.Load<PersistanceData>();
 
         foreach(IPersistanceObject Obj in FindAllPersistenceObjects()){
-            Obj.Load(Data);
+            Obj.Load(data);
         }
 
     }
@@ -53,10 +53,10 @@ public class DataPersistanceManager : MonoBehaviour
     {
         foreach (IPersistanceObject Obj in FindAllPersistenceObjects())
         {
-            Obj.Save(ref Data);
+            Obj.Save(ref data);
         }
 
-        FileDataHandler.Save(Data);
+        m_fileDataHandler.Save(data);
     }
 
     private List<IPersistanceObject> FindAllPersistenceObjects()

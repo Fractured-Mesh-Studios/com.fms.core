@@ -12,137 +12,137 @@ namespace GameEngine
     {
         [Header("Properties")]
         [Tooltip("the target transform to be followed.")]
-        public Transform Target;
+        public Transform target;
         [Tooltip("In which type of loop the motion transformation has to be executed.")]
-        public UpdateMethod Loop;
+        public UpdateMethod loop;
         [Tooltip("The type of interpolation to be applied to this object during the motion. (translation)")]
-        public InterpolationType Interpolation;
-        [Tooltip("Smooth value of the calculation formula.")]
-        public float Smooth = 1.0f;
+        public InterpolationType interpolation;
+        [Tooltip("smooth value of the calculation formula.")]
+        public float smooth = 1.0f;
         [Tooltip("[Enable/Disable] the delta time usage in the formula.")]
-        public bool DeltaTime = true;
+        public bool deltaTime = true;
         [Tooltip("Blend between the target position and the clamp disntaces. (0 = Unclamp / 1 = Clamp)")]
-        [Range(0.0f, 1.0f)] public float BlendDistance;
+        [Range(0.0f, 1.0f)] public float blendDistance;
         [Tooltip("The minimun distance between this transform and the target transform")]
-        public float MinDistance = 0.0f;
+        public float minDistance = 0.0f;
         [Tooltip("The maximun distance between this transform and the target transform (distances above make object stop moving)")]
-        public float MaxDistance = Mathf.Infinity;
-        [Tooltip("Offset vector of the current target position (zero represents the target position)")]
-        public Vector3 Offset = Vector3.zero;
+        public float maxDistance = Mathf.Infinity;
+        [Tooltip("offset vector of the current target position (zero represents the target position)")]
+        public Vector3 offset = Vector3.zero;
         [Tooltip("How much need the transform speed up to be detect motion.")]
-        public float VelocityThreshold = 0.1f;
+        public float velocityThreshold = 0.1f;
         [Tooltip("Enable/Disable Debug console info and transform gizmos")]
-        public bool EnableDebug;
+        public bool enableDebug;
 
         [Header("Events")]
-        [SerializeField] public UnityEvent OnFollow = new UnityEvent();
+        [SerializeField] public UnityEvent onFollow = new UnityEvent();
 
         //Public Fields
-        public Vector3 Velocity { internal set; get; }
-        public Vector3 StartPosition { internal set; get; }
+        public Vector3 velocity { internal set; get; }
+        public Vector3 startPosition { internal set; get; }
 
         //Internal
-        protected Vector3 Distance, PreviusPosition;
-        protected Vector3 TargetPosition;
+        protected Vector3 distance, previusPosition;
+        protected Vector3 targetPosition;
 
         protected virtual void Awake()
         {
             if (GetComponentInChildren<Rigidbody>()) {
-                Debug.LogWarning("The follow object cant contains a physics component.", gameObject, EnableDebug);
-                Debug.LogWarning("Deactivating script", gameObject, EnableDebug);
+                Debug.LogWarning("The follow object cant contains a physics component.", gameObject, enableDebug);
+                Debug.LogWarning("Deactivating script", gameObject, enableDebug);
                 enabled = false;
             }
         }
 
         protected virtual void Start()
         {
-            if (!Target)
+            if (!target)
             {
-                Debug.LogError("The Target value on follow object cannot be null.", gameObject, EnableDebug);
-                Debug.LogError("Deactivating script", gameObject, EnableDebug);
+                Debug.LogError("The target value on follow object cannot be null.", gameObject, enableDebug);
+                Debug.LogError("Deactivating script", gameObject, enableDebug);
                 enabled = false;
             }
             
-            StartPosition = transform.position;
+            startPosition = transform.position;
         }
 
         protected virtual void Update()
         {
-            if (Loop == UpdateMethod.Update && Target)
+            if (loop == UpdateMethod.Update && target)
             {
-                Velocity = (transform.position - PreviusPosition) / Time.deltaTime;
-                PreviusPosition = transform.position;
-                if (Velocity.magnitude > VelocityThreshold) { OnFollow.Invoke(); }
-                float Delta = DeltaTime ? Time.deltaTime * Smooth : Smooth;
-                Distance = Target.position - transform.position;
-                Vector3 Direction = transform.TransformDirection(Distance);
-                Vector3 Position = Target.position + Direction.normalized * -Mathf.Abs(MinDistance);
-                Position = (Distance.magnitude < MaxDistance) ? Position + Offset : transform.position;
+                velocity = (transform.position - previusPosition) / Time.deltaTime;
+                previusPosition = transform.position;
+                if (velocity.magnitude > velocityThreshold) { onFollow.Invoke(); }
+                float Delta = deltaTime ? Time.deltaTime * smooth : smooth;
+                distance = target.position - transform.position;
+                Vector3 Direction = transform.TransformDirection(distance);
+                Vector3 Position = target.position + Direction.normalized * -Mathf.Abs(minDistance);
+                Position = (distance.magnitude < maxDistance) ? Position + offset : transform.position;
                 
-                TargetPosition = Vector3.Lerp(Target.position + Offset, Position, BlendDistance);
-                switch (Interpolation)
+                targetPosition = Vector3.Lerp(target.position + offset, Position, blendDistance);
+                switch (interpolation)
                 {
                     case InterpolationType.Linear:
-                        transform.position = Vector3.Lerp(transform.position, TargetPosition, Delta);
+                        transform.position = Vector3.Lerp(transform.position, targetPosition, Delta);
                         break;
                     case InterpolationType.Spherical:
-                        transform.position = Vector3.Slerp(transform.position, TargetPosition, Delta);
+                        transform.position = Vector3.Slerp(transform.position, targetPosition, Delta);
                         break;
-                    default: transform.position = TargetPosition; break;
+                    default: transform.position = targetPosition; break;
                 }
             }
         }
 
         protected virtual void FixedUpdate()
         {
-            if (Loop == UpdateMethod.FixedUpdate && Target)
+            if (loop == UpdateMethod.FixedUpdate && target)
             {
-                Velocity = (transform.position - PreviusPosition) / Time.fixedDeltaTime;
-                PreviusPosition = transform.position;
-                if (Velocity.magnitude > VelocityThreshold) { OnFollow.Invoke(); }
-                float Delta = DeltaTime ? Time.fixedDeltaTime * Smooth : Smooth;
-                Distance = Target.position - transform.position;
-                Vector3 Direction = transform.TransformDirection(Distance);
-                Vector3 Position = Target.position + Direction.normalized * -Mathf.Abs(MinDistance);
-                Position = (Distance.magnitude < MaxDistance) ? Position + Offset : transform.position;
+                velocity = (transform.position - previusPosition) / Time.fixedDeltaTime;
+                previusPosition = transform.position;
+                if (velocity.magnitude > velocityThreshold) { onFollow.Invoke(); }
+                float Delta = deltaTime ? Time.fixedDeltaTime * smooth : smooth;
+                distance = target.position - transform.position;
+                Vector3 Direction = transform.TransformDirection(distance);
+                Vector3 Position = target.position + Direction.normalized * -Mathf.Abs(minDistance);
+                Position = (distance.magnitude < maxDistance) ? Position + offset : transform.position;
 
-                TargetPosition = Vector3.Lerp(Target.position + Offset, Position, BlendDistance);
-                switch (Interpolation)
+                targetPosition = Vector3.Lerp(target.position + offset, Position, blendDistance);
+                switch (interpolation)
                 {
                     case InterpolationType.Linear:
-                        transform.position = Vector3.Lerp(transform.position, TargetPosition, Delta);
+                        transform.position = Vector3.Lerp(transform.position, targetPosition, Delta);
                         break;
                     case InterpolationType.Spherical:
-                        transform.position = Vector3.Slerp(transform.position, TargetPosition, Delta);
+                        transform.position = Vector3.Slerp(transform.position, targetPosition, Delta);
                         break;
-                    default: transform.position = TargetPosition; break;
+                    default: transform.position = targetPosition; break;
                 }
             }
         }
 
         protected virtual void LateUpdate()
         {
-            if (Loop == UpdateMethod.LateUpdate && Target)
+            if (loop == UpdateMethod.LateUpdate && target)
             {
-                Velocity = (transform.position - PreviusPosition) / Time.deltaTime;
-                PreviusPosition = transform.position;
-                if (Velocity.magnitude > VelocityThreshold) { OnFollow.Invoke(); }
-                float Delta = DeltaTime ? Time.deltaTime * Smooth : Smooth;
-                Distance = Target.position - transform.position;
-                Vector3 Direction = transform.TransformDirection(Distance);
-                Vector3 Position = Target.position + Direction.normalized * -Mathf.Abs(MinDistance);
-                Position = (Distance.magnitude < MaxDistance) ? Position + Offset : transform.position;
+                velocity = (transform.position - previusPosition) / Time.deltaTime;
+                previusPosition = transform.position;
+                if (velocity.magnitude > velocityThreshold) { onFollow.Invoke(); }
+                float Delta = deltaTime ? Time.deltaTime * smooth : smooth;
+                distance = target.position - transform.position;
+                Vector3 Direction = transform.TransformDirection(distance);
+                Vector3 Position = target.position + Direction.normalized * -Mathf.Abs(minDistance);
+                Position = (distance.magnitude < maxDistance) ? Position + offset : transform.position;
 
-                TargetPosition = Vector3.Lerp(Target.position + Offset, Position, BlendDistance);
-                switch (Interpolation)
+                targetPosition = Vector3.Lerp(target.position + offset, Position, blendDistance);
+                switch (interpolation)
                 {
                     case InterpolationType.Linear:
-                        transform.position = Vector3.Lerp(transform.position, TargetPosition, Delta);
+                        transform.position = Vector3.Lerp(transform.position, targetPosition, Delta);
                         break;
                     case InterpolationType.Spherical:
-                        transform.position = Vector3.Slerp(transform.position, TargetPosition, Delta);
+                        transform.position = Vector3.Slerp(transform.position, targetPosition, Delta);
                         break;
-                    default: transform.position = TargetPosition; break;
+                    default: transform.position = targetPosition; break;
                 }
             }
         }
@@ -150,12 +150,12 @@ namespace GameEngine
         //Gizmos
         private void OnDrawGizmos()
         {
-            if (EnableDebug && Target)
+            if (enableDebug && target)
             {
-                Gizmos.color = (Distance.magnitude > MaxDistance && BlendDistance > 0) 
+                Gizmos.color = (distance.magnitude > maxDistance && blendDistance > 0) 
                     ? Color.red : Color.green;
-                Gizmos.DrawLine(transform.position, Target.position);
-                Gizmos.DrawWireSphere(Target.position, 0.1f);
+                Gizmos.DrawLine(transform.position, target.position);
+                Gizmos.DrawWireSphere(target.position, 0.1f);
             }
         }
     }

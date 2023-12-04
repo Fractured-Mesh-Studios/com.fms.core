@@ -5,27 +5,27 @@ namespace GameEngine.Translation
     [System.Serializable]
     public class Transform
     {
-        public Vector3 Position;
-        public Quaternion Rotation;
-        public Vector3 Scale;
+        public Vector3 position;
+        public Quaternion rotation;
+        public Vector3 scale;
 
         public Transform()
         {
-            Position = Vector3.zero;
-            Rotation = Quaternion.identity;
-            Scale = Vector3.one;
+            position = Vector3.zero;
+            rotation = Quaternion.identity;
+            scale = Vector3.one;
         }
 
         public Transform(UnityEngine.Transform NewTransform)
         {
-            Position = NewTransform.position;
-            Rotation = NewTransform.rotation;
-            Scale = NewTransform.localScale;
+            position = NewTransform.position;
+            rotation = NewTransform.rotation;
+            scale = NewTransform.localScale;
         }
 
         public override string ToString()
         {
-            return "[Position: " + Position + " Rotation: " + Rotation.eulerAngles + " Scale: " + Scale + "]";
+            return "[Position: " + position + " Rotation: " + rotation.eulerAngles + " Scale: " + scale + "]";
         }
     }
 }

@@ -5,5 +5,5 @@ using UnityEngine;
 [System.Serializable]
 public class PersistanceData
 {
-    public int Score;
+    public int score;
 }

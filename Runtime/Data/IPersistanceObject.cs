@@ -4,7 +4,7 @@ using UnityEngine;
 
 public interface IPersistanceObject
 {
-    public void Load(PersistanceData Data);
+    public void Load(PersistanceData data);
 
-    public void Save(ref PersistanceData Data);
+    public void Save(ref PersistanceData data);
 }

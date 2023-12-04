@@ -22,8 +22,8 @@ namespace GameEditor
         public override void OnInspectorGUI()
         {
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Position"));
-            Rotation = EditorGUILayout.Vector3Field("Rotation", Target.Rotation.eulerAngles);
-            Target.Rotation = Quaternion.Euler(Rotation);
+            Rotation = EditorGUILayout.Vector3Field("Rotation", Target.rotation.eulerAngles);
+            Target.rotation = Quaternion.Euler(Rotation);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Scale"));
 
             serializedObject.ApplyModifiedProperties();

@@ -6,6 +6,6 @@ namespace GameEngine
 {
     public class Tag : MonoBehaviour
     {
-        public List<string> Tags = new List<string>();
+        public List<string> tags = new List<string>();
     }
 }

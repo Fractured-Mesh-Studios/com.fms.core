@@ -10,92 +10,92 @@ namespace GameEngine
     public class Grid
     {
         //Properties
-        public Vector3 Length;
-        public Vector3 Size;
-        public Vector3 Space;
-        public Vector3 Position;
+        public Vector3 length;
+        public Vector3 size;
+        public Vector3 space;
+        public Vector3 position;
 
-        public Action<Vector3> OnGenerate;
-        public bool IsGenerated { get { return GridContainer != null && GridContainer.Length > 0; } }
+        public Action<Vector3> onGenerate;
+        public bool isGenerated { get { return m_gridContainer != null && m_gridContainer.Length > 0; } }
         public Vector3 this[int x, int y, int z]
         {
-            set { GridContainer[x, y, z] = value; }
-            get { return GridContainer[x, y, z]; }
+            set { m_gridContainer[x, y, z] = value; }
+            get { return m_gridContainer[x, y, z]; }
         }
 
-        private Vector3[,,] GridContainer;
-        private Vector3 GridContainerLength = Vector3.zero;
-        private List<Vector3> GridContainerList = new List<Vector3>();
+        private Vector3[,,] m_gridContainer;
+        private Vector3 m_gridContainerLength = Vector3.zero;
+        private List<Vector3> m_gridContainerList = new List<Vector3>();
 
         #region Grid
         public Vector3[,,] Generate()
         {
-            if (GridContainerLength != Length)
+            if (m_gridContainerLength != length)
             {
-                GridContainerLength = Length;
-                GridContainer = new Vector3[(int)Length.x, (int)Length.y, (int)Length.z];
-                Debug.Log(String.Format("Grid Generated: [{0}-{1}-{2}]", Length.x, Length.y, Length.z).Color(Color.green));
+                m_gridContainerLength = length;
+                m_gridContainer = new Vector3[(int)length.x, (int)length.y, (int)length.z];
+                Debug.Log(String.Format("Grid Generated: [{0}-{1}-{2}]", length.x, length.y, length.z).Color(Color.green));
             }
 
-            if (GridContainer == null) return null;
+            if (m_gridContainer == null) return null;
 
-            Vector3 Point = Vector3.zero;
+            Vector3 point = Vector3.zero;
             float[] val = new float[6];
 
-            GridContainerList.Clear();
-            for (int x = 0; x < Length.x; x++)
+            m_gridContainerList.Clear();
+            for (int x = 0; x < length.x; x++)
             {
-                for (int y = 0; y < Length.y; y++)
+                for (int y = 0; y < length.y; y++)
                 {
-                    for (int z = 0; z < Length.z; z++)
+                    for (int z = 0; z < length.z; z++)
                     {
-                        val[0] = Position.x - (Size.x * (Length.x / 2.0f)) - (Size.x / 2.0f) - Space.x;
-                        val[1] = Position.y - (Size.y * (Length.y / 2.0f)) - (Size.y / 2.0f) - Space.y;
-                        val[2] = Position.z - (Size.z * (Length.z / 2.0f)) - (Size.z / 2.0f) - Space.z;
+                        val[0] = position.x - (size.x * (length.x / 2.0f)) - (size.x / 2.0f) - space.x;
+                        val[1] = position.y - (size.y * (length.y / 2.0f)) - (size.y / 2.0f) - space.y;
+                        val[2] = position.z - (size.z * (length.z / 2.0f)) - (size.z / 2.0f) - space.z;
 
-                        val[3] = Size.x + x * (Size.x + Space.x) + val[0];
-                        val[4] = Size.y + y * (Size.y + Space.y) + val[1];
-                        val[5] = Size.z + z * (Size.z + Space.z) + val[2];
+                        val[3] = size.x + x * (size.x + space.x) + val[0];
+                        val[4] = size.y + y * (size.y + space.y) + val[1];
+                        val[5] = size.z + z * (size.z + space.z) + val[2];
 
-                        Point = new Vector3(val[3], val[4], val[5]);
-                        GridContainer[x, y, z] = Point;
-                        GridContainerList.Add(Point);
+                        point = new Vector3(val[3], val[4], val[5]);
+                        m_gridContainer[x, y, z] = point;
+                        m_gridContainerList.Add(point);
 
-                        if (OnGenerate != null)
+                        if (onGenerate != null)
                         {
-                            OnGenerate.Invoke(Point);
+                            onGenerate.Invoke(point);
                         }
                     }
                 }
             }
 
-            return GridContainer;
+            return m_gridContainer;
         }
 
-        public void Collision(LayerMask Mask, bool FromCenter = false)
+        public void Collision(LayerMask mask, bool fromCenter = false)
         {
-            Vector3 Origin;
+            Vector3 origin;
 
-            if (FromCenter)
+            if (fromCenter)
             {
-                GridInfo[] Data = GridCastPoint(Position, Mask);
+                GridInfo[] Data = GridCastPoint(position, mask);
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    RemoveTo(GridContainer[Data[i].x, Data[i].y, Data[i].z]);
+                    RemoveTo(m_gridContainer[Data[i].x, Data[i].y, Data[i].z]);
                 }
             }
             else
             {
-                for (int x = 0; x < Length.x; x++)
+                for (int x = 0; x < length.x; x++)
                 {
-                    for (int y = 0; y < Length.y; y++)
+                    for (int y = 0; y < length.y; y++)
                     {
-                        for (int z = 0; z < Length.z; z++)
+                        for (int z = 0; z < length.z; z++)
                         {
-                            Origin = GridContainer[x, y, z];
-                            if (GridCast(Origin, Mask))
+                            origin = m_gridContainer[x, y, z];
+                            if (GridCast(origin, mask))
                             {
-                                RemoveTo(Origin);
+                                RemoveTo(origin);
                             }
                         }
                     }
@@ -104,19 +104,19 @@ namespace GameEngine
 
         }
 
-        public bool Contains(Vector3 Point, float Threshold = 0.05f)
+        public bool Contains(Vector3 point, float threshold = 0.05f)
         {
-            float Distance = Mathf.Infinity;
+            float distance = Mathf.Infinity;
 
-            for (int x = 0; x < Length.x; x++)
+            for (int x = 0; x < length.x; x++)
             {
-                for (int y = 0; y < Length.y; y++)
+                for (int y = 0; y < length.y; y++)
                 {
-                    for (int z = 0; z < Length.z; z++)
+                    for (int z = 0; z < length.z; z++)
                     {
-                        Distance = Vector3.Distance(GridContainer[x, y, z], Point);
+                        distance = Vector3.Distance(m_gridContainer[x, y, z], point);
 
-                        if (Distance < Math.Abs(Threshold))
+                        if (distance < Math.Abs(threshold))
                         {
                             return true;
                         }
@@ -127,15 +127,15 @@ namespace GameEngine
             return false;
         }
 
-        public Vector3Int FindIndex(Vector3 Point)
+        public Vector3Int FindIndex(Vector3 point)
         {
-            for (int x = 0; x < Length.x; x++)
+            for (int x = 0; x < length.x; x++)
             {
-                for (int y = 0; y < Length.y; y++)
+                for (int y = 0; y < length.y; y++)
                 {
-                    for (int z = 0; z < Length.z; z++)
+                    for (int z = 0; z < length.z; z++)
                     {
-                        if (GridContainer[x,y,z] == Point)
+                        if (m_gridContainer[x,y,z] == point)
                         {
                             return new Vector3Int(x, y, z);
                         }
@@ -148,118 +148,118 @@ namespace GameEngine
 
         public bool Clear()
         {
-            GridContainer = new Vector3[0, 0, 0];
-            GridContainerList.Clear();
+            m_gridContainer = new Vector3[0, 0, 0];
+            m_gridContainerList.Clear();
             System.GC.Collect();
-            return GridContainer == null;
+            return m_gridContainer == null;
         }
 
-        public Vector3 Nearest(Vector3 Point)
+        public Vector3 Nearest(Vector3 point)
         {
-            if (GridContainer == null)
-                return Point;
+            if (m_gridContainer == null)
+                return point;
 
-            bool Valid;
-            Vector3 Distance, MinDistance = Vector3.one * Mathf.Infinity, NearPoint = Point;
-            float Start = Vector3.Distance(Position, Point);
-            float End = Vector3.Distance(Position, Position + Vector3.Scale(Length, Size) / 2f);
+            bool valid;
+            Vector3 distance, minDistance = Vector3.one * Mathf.Infinity, nearPoint = point;
+            float start = Vector3.Distance(position, point);
+            float end = Vector3.Distance(position, position + Vector3.Scale(length, size) / 2f);
 
-            if (Start > End) return Point;
+            if (start > end) return point;
 
-            for (int x = 0; x < Length.x; x++)
+            for (int x = 0; x < length.x; x++)
             {
-                for (int y = 0; y < Length.y; y++)
+                for (int y = 0; y < length.y; y++)
                 {
-                    for (int z = 0; z < Length.z; z++)
+                    for (int z = 0; z < length.z; z++)
                     {
-                        Distance = GridContainer[x, y, z] - Point;
-                        Valid = Distance.magnitude < MinDistance.magnitude;
-                        if (Valid && GridContainerList.Contains(GridContainer[x, y, z]))
+                        distance = m_gridContainer[x, y, z] - point;
+                        valid = distance.magnitude < minDistance.magnitude;
+                        if (valid && m_gridContainerList.Contains(m_gridContainer[x, y, z]))
                         {
-                            MinDistance = Distance;
-                            NearPoint = GridContainer[x, y, z];
+                            minDistance = distance;
+                            nearPoint = m_gridContainer[x, y, z];
                         }
                     }
                 }
             }
 
-            return NearPoint;
+            return nearPoint;
         }
 
-        public Vector3 Longest(Vector3 Point)
+        public Vector3 Longest(Vector3 point)
         {
-            Vector3 Distance, MaxDistance = Vector3.zero, LongPoint = Point;
+            Vector3 distance, maxDistance = Vector3.zero, longPoint = point;
 
-            for (int x = 0; x < Length.x; x++)
+            for (int x = 0; x < length.x; x++)
             {
-                for (int y = 0; y < Length.y; y++)
+                for (int y = 0; y < length.y; y++)
                 {
-                    for (int z = 0; z < Length.z; z++)
+                    for (int z = 0; z < length.z; z++)
                     {
-                        Distance = GridContainer[x, y, z] - Point;
-                        if (Distance.magnitude > MaxDistance.magnitude)
+                        distance = m_gridContainer[x, y, z] - point;
+                        if (distance.magnitude > maxDistance.magnitude)
                         {
-                            MaxDistance = Distance;
-                            LongPoint = GridContainer[x, y, z];
+                            maxDistance = distance;
+                            longPoint = m_gridContainer[x, y, z];
                         }
                     }
                 }
             }
 
-            return LongPoint;
+            return longPoint;
         }
 
-        public bool IsInRange(Vector3 Point)
+        public bool IsInRange(Vector3 point)
         {
-            float Start = Vector3.Distance(Position, Point);
-            float End = Vector3.Distance(Position, Position + Vector3.Scale(Length, Size) / 2f);
-            return Start < End;
+            float start = Vector3.Distance(position, point);
+            float end = Vector3.Distance(position, position + Vector3.Scale(length, size) / 2f);
+            return start < end;
         }
 
         public Vector3[,,] GetGrid()
         {
-            return GridContainer;
+            return m_gridContainer;
         }
         #endregion
 
         #region Dynamic
-        public void AddTo(Vector3 Item)
+        public void AddTo(Vector3 item)
         {
-            Vector3[] Container = GridContainer.Cast<Vector3>().ToArray();
-            if (Array.Exists(Container, e => e == Item) && !GridContainerList.Contains(Item))
+            Vector3[] container = m_gridContainer.Cast<Vector3>().ToArray();
+            if (Array.Exists(container, e => e == item) && !m_gridContainerList.Contains(item))
             {
-                Debug.Log("Added " + Item);
-                GridContainerList.Add(Item);
+                Debug.Log("Added " + item);
+                m_gridContainerList.Add(item);
             }
         }
 
-        public bool RemoveTo(Vector3 Item)
+        public bool RemoveTo(Vector3 item)
         {
-            Vector3[] Container = GridContainer.Cast<Vector3>().ToArray();
-            if (Array.Exists(Container, e => e == Item) && GridContainerList.Contains(Item))
+            Vector3[] container = m_gridContainer.Cast<Vector3>().ToArray();
+            if (Array.Exists(container, e => e == item) && m_gridContainerList.Contains(item))
             {
-                Debug.Log("Removed " + Item);
-                return GridContainerList.Remove(Item);
+                Debug.Log("Removed " + item);
+                return m_gridContainerList.Remove(item);
             }
 
             return false;
         }
 
-        public bool ContainsTo(Vector3 Point, float Threshold = 0.05f)
+        public bool ContainsTo(Vector3 point, float threshold = 0.05f)
         {
-            return GridContainerList.Contains(Point) && Contains(Point, Threshold);
+            return m_gridContainerList.Contains(point) && Contains(point, threshold);
         }
 
         public void ResetTo()
         {
-            GridContainerList.Clear();
-            for (int x = 0; x < Length.x; x++)
+            m_gridContainerList.Clear();
+            for (int x = 0; x < length.x; x++)
             {
-                for (int y = 0; y < Length.y; y++)
+                for (int y = 0; y < length.y; y++)
                 {
-                    for (int z = 0; z < Length.z; z++)
+                    for (int z = 0; z < length.z; z++)
                     {
-                        GridContainerList.Add(GridContainer[x, y, z]);
+                        m_gridContainerList.Add(m_gridContainer[x, y, z]);
                     }
                 }
             }
@@ -267,28 +267,28 @@ namespace GameEngine
         #endregion
 
         #region Gizmos
-        public void GizmosDrawGrid(Vector3 Point, Color Color, Color Selected)
+        public void GizmosDrawGrid(Vector3 point, Color Color, Color Selected)
         {
-            if (GridContainer != null)
+            if (m_gridContainer != null)
             {
-                bool Valid;
+                bool valid;
 
-                for (int x = 0; x < Length.x; x++)
+                for (int x = 0; x < length.x; x++)
                 {
-                    for (int y = 0; y < Length.y; y++)
+                    for (int y = 0; y < length.y; y++)
                     {
-                        for (int z = 0; z < Length.z; z++)
+                        for (int z = 0; z < length.z; z++)
                         {
-                            Position = GridContainer[x, y, z];
-                            Valid = GridContainerList.Contains(GridContainer[x, y, z]);
+                            position = m_gridContainer[x, y, z];
+                            valid = m_gridContainerList.Contains(m_gridContainer[x, y, z]);
 
                             //Interator
-                            Gizmos.color = Valid ? Color : Color.red;
-                            Gizmos.DrawWireCube(GridContainer[x, y, z], Size);
+                            Gizmos.color = valid ? Color : Color.red;
+                            Gizmos.DrawWireCube(m_gridContainer[x, y, z], size);
 
                             //Nearest
                             Gizmos.color = Selected;
-                            Gizmos.DrawCube(Nearest(Point), Size);
+                            Gizmos.DrawCube(Nearest(point), size);
                         }
                     }
                 }
@@ -298,70 +298,70 @@ namespace GameEngine
         public void GizmosDrawBounds()
         {
             float x, y, z;
-            x = Size.x * Length.x + Space.x * Length.x;
-            y = Size.y * Length.y + Space.y * Length.y;
-            z = Size.z * Length.z + Space.z * Length.z; 
+            x = size.x * length.x + space.x * length.x;
+            y = size.y * length.y + space.y * length.y;
+            z = size.z * length.z + space.z * length.z; 
 
-            Gizmos.DrawWireCube(Position, new Vector3(x,y,z));
+            Gizmos.DrawWireCube(position, new Vector3(x,y,z));
         }
 
         #endregion
 
         #region Private
-        private bool GridCast(Vector3 Point, LayerMask Mask)
+        private bool GridCast(Vector3 point, LayerMask mask)
         {
-            bool Valid = false;
-            Ray[] Directions = new Ray[6];
-            Directions[0] = new Ray(Point, Vector3.up);
-            Directions[1] = new Ray(Point, Vector3.down);
-            Directions[2] = new Ray(Point, Vector3.left);
-            Directions[3] = new Ray(Point, Vector3.right);
-            Directions[4] = new Ray(Point, Vector3.forward);
-            Directions[5] = new Ray(Point, Vector3.back);
-            RaycastHit Hit;
+            bool valid = false;
+            Ray[] directions = new Ray[6];
+            directions[0] = new Ray(point, Vector3.up);
+            directions[1] = new Ray(point, Vector3.down);
+            directions[2] = new Ray(point, Vector3.left);
+            directions[3] = new Ray(point, Vector3.right);
+            directions[4] = new Ray(point, Vector3.forward);
+            directions[5] = new Ray(point, Vector3.back);
+            RaycastHit hit;
 
-            float[] Distance = new float[] {
-            Size.y/2, Size.y/2,
-            Size.x/2, Size.x/2,
-            Size.z/2, Size.z/2,
+            float[] distance = new float[] {
+            size.y/2, size.y/2,
+            size.x/2, size.x/2,
+            size.z/2, size.z/2,
         };
 
-            for (int i = 0; i < Directions.Length; i++)
+            for (int i = 0; i < directions.Length; i++)
             {
                 if (i == 0)
                 {
-                    Valid = Physics.Raycast(Directions[i], out Hit, Distance[i], Mask);
+                    valid = Physics.Raycast(directions[i], out hit, distance[i], mask);
                 }
                 else
                 {
-                    Valid |= Physics.Raycast(Directions[i], out Hit, Distance[i], Mask);
+                    valid |= Physics.Raycast(directions[i], out hit, distance[i], mask);
                 }
             }
 
-            return Valid;
+            return valid;
         }
 
-        private GridInfo[] GridCastPoint(Vector3 Point, LayerMask Mask)
+        private GridInfo[] GridCastPoint(Vector3 point, LayerMask mask)
         {
-            int TotalLength = (int)Length.x * (int)Length.y * (int)Length.z;
-            GridInfo[] Result = new GridInfo[TotalLength];
+            int totalLength = (int)length.x * (int)length.y * (int)length.z;
+            GridInfo[] Result = new GridInfo[totalLength];
 
             bool isHit;
-            RaycastHit Hit;
-            Vector3 Direction;
-            float Distance;
+            RaycastHit hit;
+            Vector3 direction;
+            float distance;
 
             int i = 0;
-            for (int x = 0; x < Length.x; x++)
+            for (int x = 0; x < length.x; x++)
             {
-                for (int y = 0; y < Length.y; y++)
+                for (int y = 0; y < length.y; y++)
                 {
-                    for (int z = 0; z < Length.z; z++)
+                    for (int z = 0; z < length.z; z++)
                     {
-                        Direction = GridContainer[x, y, z] - Point;
-                        Distance = Vector3.Distance(Point, GridContainer[x, y, z]);
-                        isHit = Physics.Raycast(Point, Direction.normalized, out Hit, Distance, Mask);
-                        Result[i] = new GridInfo(x, y, z, Hit, isHit, Hit.point);
+                        direction = m_gridContainer[x, y, z] - point;
+                        distance = Vector3.Distance(point, m_gridContainer[x, y, z]);
+                        isHit = Physics.Raycast(point, direction.normalized, out hit, distance, mask);
+                        Result[i] = new GridInfo(x, y, z, hit, isHit, hit.point);
                     }
                 }
             }
@@ -374,28 +374,19 @@ namespace GameEngine
 
     internal struct GridInfo
     {
-        public GridInfo(int x, int y, int z, RaycastHit Hit, bool IsHit, Vector3 Point)
+        public GridInfo(int x, int y, int z, RaycastHit hit, bool isHit, Vector3 point)
         {
             this.x = x;
             this.y = y;
             this.z = z;
-            this.Hit = Hit;
-            this.IsHit = IsHit;
-            this.Point = Point;
+            this.hit = hit;
+            this.isHit = isHit;
+            this.point = point;
         }
 
         public int x, y, z;
-        public Vector3 Point;
-        public RaycastHit Hit;
-        public bool IsHit;
+        public Vector3 point;
+        public RaycastHit hit;
+        public bool isHit;
     }
 }
-/*
-    float lx = Location.x - (Size.x * (Length.x / 2.0f)) - (Size.x / 2.0f) - Space.x;
-    float ly = Location.y - (Size.y * (Length.y / 2.0f)) - (Size.y / 2.0f) - Space.y;
-    float lz = Location.z - (Size.z * (Length.z / 2.0f)) - (Size.z / 2.0f) - Space.z;
-
-    float wx = Size.x + x * (Size.x + Space.x) + lx;
-    float wy = Size.y + y * (Size.y + Space.y) + ly;
-    float wz = Size.z + z * (Size.z + Space.z) + lz;
-*/

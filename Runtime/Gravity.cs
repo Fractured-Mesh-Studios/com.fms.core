@@ -8,67 +8,76 @@ namespace GameEngine
     [RequireComponent(typeof(Rigidbody))]
     public class Gravity : MonoBehaviour
     {
-        [HideInInspector]public Transform Target;
-        [HideInInspector]public Vector3 TargetVector;
-        [HideInInspector]public float Force = 9.81f;
-        [HideInInspector][Range(0,1)]public float Scale = 1;
-        [HideInInspector]public UpdateMethod UpdateMethod = UpdateMethod.FixedUpdate;
+        [HideInInspector] public Transform target;
+        [HideInInspector] public Vector3 targetVector;
+        [HideInInspector] public float force = 9.81f;
+        [HideInInspector][Range(0,1)]public float scale = 1f;
+        [HideInInspector] public UpdateMethod updateMethod = UpdateMethod.FixedUpdate;
         
-        public Vector3 Direction { internal set; get; }
+        public Vector3 direction { internal set; get; }
 
-        private Rigidbody BodyComponent;
-        private Vector3 Newton, Vector;
-        private float ScaledForce;
+        private Rigidbody m_rigidbody;
+        private Vector3 m_acceleration, m_vector;
+        private float m_scaledForce;
 
         protected void Awake()
         {
-            BodyComponent = GetComponent<Rigidbody>();
-            Vector = Vector3.zero;
-            ScaledForce = 0.0f;
+            m_rigidbody = GetComponent<Rigidbody>();
+            m_vector = Vector3.zero;
+            m_scaledForce = 0.0f;
         }
 
         protected void Update()
         {
-            if (BodyComponent.useGravity && UpdateMethod == UpdateMethod.Update)
+            if (m_rigidbody.useGravity && updateMethod == UpdateMethod.Update)
             {
-                Vector = (Target) ?
-                    Target.position - transform.position :
-                    TargetVector - transform.position;
+                m_vector = (target) ?
+                    target.position - transform.position :
+                    targetVector - transform.position;
 
-                Direction = Vector.normalized;
-                ScaledForce = Force * Mathf.Clamp01(Scale);
-                Newton = BodyComponent.mass * (Direction * ScaledForce);
-                BodyComponent.AddForce(Newton, ForceMode.Force);
+                direction = m_vector.normalized;
+                m_scaledForce = force * Mathf.Clamp01(scale);
+                m_acceleration = m_rigidbody.mass * (direction * m_scaledForce);
+                m_rigidbody.AddForce(m_acceleration, ForceMode.Force);
             }
         }
 
         protected void FixedUpdate()
         {
-            if (BodyComponent.useGravity && UpdateMethod == UpdateMethod.FixedUpdate)
+            if (m_rigidbody.useGravity && updateMethod == UpdateMethod.FixedUpdate)
             {
-                Vector = (Target) ? 
-                    Target.position - transform.position :
-                    TargetVector - transform.position;
+                m_vector = (target) ? 
+                    target.position - transform.position :
+                    targetVector - transform.position;
 
-                Direction = Vector.normalized;
-                ScaledForce = Force * Mathf.Clamp01(Scale);
-                Newton = BodyComponent.mass * (Direction * ScaledForce);
-                BodyComponent.AddForce(Newton, ForceMode.Force);
+                direction = m_vector.normalized;
+                m_scaledForce = force * Mathf.Clamp01(scale);
+                m_acceleration = m_rigidbody.mass * (direction * m_scaledForce);
+                m_rigidbody.AddForce(m_acceleration, ForceMode.Force);
             }
         }
 
         protected void LateUpdate()
         {
-            if (BodyComponent.useGravity && UpdateMethod == UpdateMethod.LateUpdate)
+            if (m_rigidbody.useGravity && updateMethod == UpdateMethod.LateUpdate)
             {
-                Vector = (Target) ?
-                    Target.position - transform.position :
-                    TargetVector - transform.position;
+                m_vector = (target) ?
+                    target.position - transform.position :
+                    targetVector - transform.position;
 
-                Direction = Vector.normalized;
-                ScaledForce = Force * Mathf.Clamp01(Scale);
-                Newton = BodyComponent.mass * (Direction * ScaledForce);
-                BodyComponent.AddForce(Newton, ForceMode.Force);
+                direction = m_vector.normalized;
+                m_scaledForce = force * Mathf.Clamp01(scale);
+                m_acceleration = m_rigidbody.mass * (direction * m_scaledForce);
+                m_rigidbody.AddForce(m_acceleration, ForceMode.Force);
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (target)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawRay(transform.position, direction);
             }
         }
     }

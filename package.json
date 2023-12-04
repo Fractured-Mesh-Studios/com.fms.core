@@ -1,6 +1,6 @@
 {
   "name": "com.fms.core",
-  "version": "1.0.0",
+  "version": "0.2.1",
   "displayName": "Core",
   "description": "Author: Jorge Nauel Gerones.\nThis is the base scripts for all of addons",
   "unity": "2021.1",

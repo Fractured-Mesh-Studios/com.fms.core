@@ -32,34 +32,34 @@ public class InputProviderEditor : Editor
         {
             if (!EventSystem.current)
             {
-                EditorGUILayout.HelpBox("The event system is not setup correctly", MessageType.Warning);
+                EditorGUILayout.HelpBox("The interface event system is not setup correctly", MessageType.Warning);
             }
         }
 
         PopUp();
-        if(Target.ActionMapName == string.Empty)
+        if(Target.actionMapName == string.Empty)
         {
             EditorGUILayout.HelpBox("Action Map Name In Current Target Asset Is <Empty>", MessageType.Warning);
             return;
         }
 
         InputActionMap Map = null;
-        if (Target.Asset)
+        if (Target.asset)
         {
-            Map = Target.Asset.FindActionMap(Target.ActionMapName, true);
+            Map = Target.asset.FindActionMap(Target.actionMapName, true);
 
-            if (Target.MapKeys == null || Target.MapKeys.Length == 0 || Target.MapKeys.Length != Map.actions.Count)
+            if (Target.mapKeys == null || Target.mapKeys.Length == 0 || Target.mapKeys.Length != Map.actions.Count)
             {
-                if (Target.ActionMapName != string.Empty)
+                if (Target.actionMapName != string.Empty)
                 {
-                    for(int i = 0; i < Target.Asset.actionMaps.Count; i++)
+                    for(int i = 0; i < Target.asset.actionMaps.Count; i++)
                     {
-                        if(Target.Asset.actionMaps[i] != null && Target.Asset.actionMaps[i].name == Target.ActionMapName)
+                        if(Target.asset.actionMaps[i] != null && Target.asset.actionMaps[i].name == Target.actionMapName)
                         {
-                            Target.MapKeys = new bool[Map.actions.Count];
-                            for(int j = 0; j < Target.MapKeys.Length; j++)
+                            Target.mapKeys = new bool[Map.actions.Count];
+                            for(int j = 0; j < Target.mapKeys.Length; j++)
                             {
-                                Target.MapKeys[j] = true;
+                                Target.mapKeys[j] = true;
                             }
                         }
                     }
@@ -73,22 +73,22 @@ public class InputProviderEditor : Editor
             i = 0;
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField(Target.Mode+" To "+Target.gameObject);
+            EditorGUILayout.LabelField(Target.mode+" To "+Target.gameObject);
             EditorGUILayout.BeginVertical("Box");
             foreach (InputAction action in Map.actions)
             {
                 Data = "[Name = " + action.name + "]"; 
 
                 EditorGUILayout.BeginHorizontal();
-                if(i >= 0 && i < Target.MapKeys.Length)
+                if(i >= 0 && i < Target.mapKeys.Length)
                 {
-                    GUIContent Content = new GUIContent("On" + action.name + "(CallbackContext);", Data);
-                    Target.MapKeys[i] = EditorGUILayout.ToggleLeft(Content, Target.MapKeys[i]);
+                    GUIContent Content = new GUIContent("On" + action.name + "(InputValue);", Data);
+                    Target.mapKeys[i] = EditorGUILayout.ToggleLeft(Content, Target.mapKeys[i]);
                     i++;
                 }
                 else
                 {
-                    EditorGUILayout.LabelField("On" + action.name + "(CallbackContext);");
+                    EditorGUILayout.LabelField("On" + action.name + "(InputValue);");
                 }
 
                 Data = action.controls.Count > 0 ? action.controls[0].displayName : "<Unbind>";
@@ -102,13 +102,13 @@ public class InputProviderEditor : Editor
 
     private void PopUp()
     {
-        if (Target.Asset)
+        if (Target.asset)
         {
-            string[] ActionMapNames = new string[Target.Asset.actionMaps.Count];
+            string[] ActionMapNames = new string[Target.asset.actionMaps.Count];
             for(i = 0; i < ActionMapNames.Length; i++)
             {
-                ActionMapNames[i] = Target.Asset.actionMaps[i].name;
-                if(Target.ActionMapName == ActionMapNames[i])
+                ActionMapNames[i] = Target.asset.actionMaps[i].name;
+                if(Target.actionMapName == ActionMapNames[i])
                 {
                     SelectedIndex = i;
                 }
@@ -121,10 +121,10 @@ public class InputProviderEditor : Editor
 
             if (ActionMapNames[SelectedIndex] != "None")
             {
-                Target.ActionMapName = ActionMapNames[SelectedIndex];
+                Target.actionMapName = ActionMapNames[SelectedIndex];
             }
             else 
-                Target.ActionMapName = string.Empty;
+                Target.actionMapName = string.Empty;
 
         }
     }

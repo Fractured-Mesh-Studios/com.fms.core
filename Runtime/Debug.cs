@@ -5,8 +5,8 @@ namespace DebugEngine
 {
     public class Debug
     {
-        public static bool EnableAll = false;
-        public static Color ContextColor = new Color(0.0f, 0.63f, 0.90f);
+        public static bool enableAll = false;
+        public static Color contextColor = new Color(0.0f, 0.63f, 0.90f);
 
         //Logs
         public static void Log(object message)
@@ -16,11 +16,11 @@ namespace DebugEngine
 
         public static void Log(object message, Object context, bool Enable = true)
         {
-            if (Enable || EnableAll)
+            if (Enable || enableAll)
             {
                 if (context)
                 {
-                    message = "<color=#" + ColorUtility.ToHtmlStringRGBA(ContextColor) + ">" +
+                    message = "<color=#" + ColorUtility.ToHtmlStringRGBA(contextColor) + ">" +
                         "[" + context.name + "]" + "</color>" + " " + message;
                 }
                 UnityEngine.Debug.Log(message, context);
@@ -29,9 +29,9 @@ namespace DebugEngine
 
         public static void Log(object message, Color color, Object context, bool Enable)
         {
-            if (Enable || EnableAll)
+            if (Enable || enableAll)
             {
-                string Context = context ? ("["+context.name+"]").Color(ContextColor) : string.Empty;
+                string Context = context ? ("["+context.name+"]").Color(contextColor) : string.Empty;
                 string Message = message.ToString().Color(color);
                 message = Context + " " + Message;
                 UnityEngine.Debug.Log(message, context);
@@ -45,11 +45,11 @@ namespace DebugEngine
 
         public static void LogWarning(object message, Object context, bool Enable = true)
         {
-            if (Enable || EnableAll)
+            if (Enable || enableAll)
             {
                 if (context)
                 {
-                    message = "<color=#" + ColorUtility.ToHtmlStringRGBA(ContextColor) + ">" +
+                    message = "<color=#" + ColorUtility.ToHtmlStringRGBA(contextColor) + ">" +
                         "[" + context.name + "]" + "</color>" + " " + message;
                 }
                 UnityEngine.Debug.LogWarning(message, context);
@@ -63,11 +63,11 @@ namespace DebugEngine
 
         public static void LogError(object message, Object context, bool Enable = true)
         {
-            if (Enable || EnableAll)
+            if (Enable || enableAll)
             {
                 if (context)
                 {
-                    message = "<color=#" + ColorUtility.ToHtmlStringRGBA(ContextColor) + ">" +
+                    message = "<color=#" + ColorUtility.ToHtmlStringRGBA(contextColor) + ">" +
                         "[" + context.name + "]" + "</color>" + " " + message;
                 }
                 UnityEngine.Debug.LogError(message, context);
@@ -85,7 +85,7 @@ namespace DebugEngine
             {
                 if (context)
                 {
-                    message = "<color=#" + ColorUtility.ToHtmlStringRGBA(ContextColor) + ">" +
+                    message = "<color=#" + ColorUtility.ToHtmlStringRGBA(contextColor) + ">" +
                         "[" + context.name + "]" + "</color>" + " " + message;
                 }
                 UnityEngine.Debug.LogAssertion(message, context);
@@ -99,7 +99,7 @@ namespace DebugEngine
 
         public static void LogExeption(System.Exception exception, Object context, bool Enable)
         {
-            if (Enable || EnableAll)
+            if (Enable || enableAll)
             {
                 UnityEngine.Debug.LogException(exception, context);
             }

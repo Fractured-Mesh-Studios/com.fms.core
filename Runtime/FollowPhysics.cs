@@ -8,12 +8,12 @@ namespace GameEngine
 {
     public class FollowPhysics : Follow
     {
-        protected Rigidbody BodyComponent;
+        protected Rigidbody m_rigidbody;
 
         protected override void Awake()
         {
-            BodyComponent = GetComponentInChildren<Rigidbody>();
-            if(BodyComponent != null)
+            m_rigidbody = GetComponentInChildren<Rigidbody>();
+            if(m_rigidbody != null)
             {
                 Debug.Log("Follow Physics Enabled");
             }

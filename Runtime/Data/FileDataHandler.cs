@@ -3,63 +3,122 @@ using System.IO;
 using System;
 using System.Linq;
 using UnityEngine;
+using Newtonsoft.Json;
 
-public class FileDataHandler 
+public class FileDataHandler
 {
-    private string PathData;
-    private string FileName;
+    private string m_path;
+    private string m_filename;
 
-    public FileDataHandler(string path,string name)
+    public FileDataHandler(string path, string name)
     {
-        PathData = path;
-        FileName = name;
+        m_path = path;
+        m_filename = name;
     }
 
-    public PersistanceData Load()
+    public T Load<T>()
     {
-        string FullPath = Path.Combine(PathData, FileName);
-        PersistanceData LoadedData = null;
-        if (File.Exists(FullPath))
+        string fullPath = Path.Combine(m_path, m_filename);
+        T loadedData = default;
+        if (File.Exists(fullPath))
         {
             try
             {
-                string DataToLoad = String.Empty;
-                using (FileStream FileStream = new FileStream(FullPath, FileMode.Open))
+                string dataToLoad = String.Empty;
+                using (FileStream FileStream = new FileStream(fullPath, FileMode.Open))
                 {
                     using (StreamReader Reader = new StreamReader(FileStream))
                     {
-                        DataToLoad = Reader.ReadToEnd();
+                        dataToLoad = Reader.ReadToEnd();
                     }
                 }
 
-                LoadedData = JsonUtility.FromJson<PersistanceData>(DataToLoad);
+                loadedData = JsonUtility.FromJson<T>(dataToLoad);
 
             } catch (Exception e) {
                 Debug.LogException(e);
             }
         }
 
-        return LoadedData;
+        return loadedData;
     }
 
-    public void Save(PersistanceData Data) 
+    public T[] LoadArray<T>() 
     {
-        string FullPath = Path.Combine(PathData, FileName);
+        string fullPath = Path.Combine(m_path, m_filename);
+
+        JsonSerializerSettings settings = new JsonSerializerSettings();
+        settings.Formatting = Formatting.Indented;
+        settings.NullValueHandling = NullValueHandling.Include;
+
+        T[] loadedData = default;
+        if (File.Exists(fullPath))
+        {
+            try
+            {
+                string dataToLoad = String.Empty;
+                using (FileStream FileStream = new FileStream(fullPath, FileMode.Open))
+                {
+                    using (StreamReader Reader = new StreamReader(FileStream))
+                    {
+                        dataToLoad = Reader.ReadToEnd();
+                    }
+                }
+
+                loadedData = JsonConvert.DeserializeObject<T[]>(dataToLoad, settings);
+
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        return loadedData;
+    }
+
+    public void Save<T>(T data) 
+    {
+        string fullPath = Path.Combine(m_path, m_filename);
         try 
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(FullPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
             
-            string DataToStore = JsonUtility.ToJson(Data, true);
+            string dataToStore = JsonUtility.ToJson(data, true);
 
-            using (FileStream fs = new FileStream(FullPath, FileMode.Create))
+            using (FileStream fs = new FileStream(fullPath, FileMode.Create))
             {
                 using(StreamWriter writer = new StreamWriter(fs))
                 {
-                    writer.Write(DataToStore);  
+                    writer.Write(dataToStore);  
                 }
             }
 
         } catch(Exception e) {
+            Debug.LogException(e);
+        }
+    }
+
+    public void SaveArray<T>(T[] data)
+    {
+        string fullPath = Path.Combine(m_path, m_filename);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+
+            string dataToStore = JsonConvert.SerializeObject(data, Formatting.Indented);
+
+            using (FileStream fs = new FileStream(fullPath, FileMode.Create))
+            {
+                using (StreamWriter writer = new StreamWriter(fs))
+                {
+                    writer.Write(dataToStore);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
             Debug.LogException(e);
         }
     }

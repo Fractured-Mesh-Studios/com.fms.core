@@ -1,8 +1,9 @@
+using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using Debug = DebugEngine.Debug;
-
 
 namespace GameEngine
 {
@@ -16,33 +17,33 @@ namespace GameEngine
         }
 
         [Header("Input")]
-        public bool DisableOverInterface = true;
-        public InputActionAsset Asset;
-        public InputProviderMode Mode;
-        public UpdateMethod UpdateMethod = UpdateMethod.Update;
+        public bool overInterface = true;
+        public InputActionAsset asset;
+        public InputProviderMode mode;
+        public UpdateMethod updateMethod = UpdateMethod.Update;
 
-        [HideInInspector] public string ActionMapName = string.Empty;
-        [HideInInspector] public bool[] MapKeys;
-        [SerializeField] private bool EnableDebug;
+        [HideInInspector] public string actionMapName = string.Empty;
+        [HideInInspector] public bool[] mapKeys;
+        [SerializeField] private bool m_enableDebug;
 
-        private InputActionMap MapReference;
-        private InputActionRebindingExtensions.RebindingOperation Operation;
-        private bool OverInterface;
+        private InputActionMap m_map;
+        private InputActionRebindingExtensions.RebindingOperation m_operation;
+        private bool m_overInterface;
 
         private void OnEnable()
         {
-            //MapReference = Asset.FindActionMap(ActionMapName);
+            //m_map = asset.FindActionMap(actionMapName);
             GenerateKeys();
 
-            if (MapReference != null)
+            if (m_map != null)
             {
                 InputAction Action = null;
-                for (int i = 0; i < MapReference.actions.Count; i++)
+                for (int i = 0; i < m_map.actions.Count; i++)
                 {
-                    Action = MapReference.actions[i];
-                    if (MapKeys[i])
+                    Action = m_map.actions[i];
+                    if (mapKeys[i])
                     {
-                        Debug.Log(("Action Added " + Action.name).Color(Color.green), gameObject, EnableDebug);
+                        Debug.Log(("Action Added " + Action.name).Color(Color.green), gameObject, m_enableDebug);
                         Action.performed += AddMessage;
                         Action.Enable();
                     }
@@ -52,89 +53,101 @@ namespace GameEngine
 
         private void OnDisable()
         {
-            if (ActionMapName == string.Empty) return;
+            if (actionMapName == string.Empty) return;
 
-            MapReference = Asset.FindActionMap(ActionMapName);
+            m_map = asset.FindActionMap(actionMapName);
 
-            if (MapReference != null)
+            if (m_map != null)
             {
                 InputAction Action = null;
-                for (int i = 0; i < MapReference.actions.Count; i++)
+                for (int i = 0; i < m_map.actions.Count; i++)
                 {
-                    Action = MapReference.actions[i];
+                    Action = m_map.actions[i];
                     if (Action.enabled)
                     {
-                        Debug.Log(("Action Removed " + Action.name).Color(Color.red), gameObject, EnableDebug);
+                        Debug.Log(("Action Removed " + Action.name).Color(Color.red), gameObject, m_enableDebug);
                         Action.performed -= AddMessage;
                         Action.Disable();
                     }
                 }
             }
 
-            MapReference = null;
+            m_map = null;
         }
 
         #region Update
         private void Update()
         {
-            if(UpdateMethod == UpdateMethod.Update && EventSystem.current)
+            if(updateMethod == UpdateMethod.Update && EventSystem.current)
             {
-                OverInterface = EventSystem.current.IsPointerOverGameObject();
+                m_overInterface = EventSystem.current.IsPointerOverGameObject();
             }
         }
 
         private void FixedUpdate()
         {
-            if (UpdateMethod == UpdateMethod.FixedUpdate && EventSystem.current)
+            if (updateMethod == UpdateMethod.FixedUpdate && EventSystem.current)
             {
-                OverInterface = EventSystem.current.IsPointerOverGameObject();
+                m_overInterface = EventSystem.current.IsPointerOverGameObject();
             }
         }
 
         private void LateUpdate()
         {
-            if (UpdateMethod == UpdateMethod.LateUpdate && EventSystem.current)
+            if (updateMethod == UpdateMethod.LateUpdate && EventSystem.current)
             {
-                OverInterface = EventSystem.current.IsPointerOverGameObject();
+                m_overInterface = EventSystem.current.IsPointerOverGameObject();
             }
         }
         #endregion
 
+        internal InputValue m_inputValue;
+
         private void AddMessage(InputAction.CallbackContext context)
         {
-            if (DisableOverInterface && OverInterface) { return; }
+            if (!overInterface && m_overInterface) { return; }
 
-            switch (Mode)
+            if (m_inputValue == null)
+                m_inputValue = new InputValue();
+
+            Type type = m_inputValue.GetType();
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            FieldInfo field = type.GetField("m_Context", flags);
+            field.SetValue(m_inputValue, context);
+
+            switch (mode)
             {
-                case InputProviderMode.SendMessages: 
-                    SendMessage("On" + context.action.name, context); 
+                case InputProviderMode.SendMessages:
+                    SendMessage("On" + context.action.name, m_inputValue, SendMessageOptions.DontRequireReceiver);
                     break;
-                case InputProviderMode.BroadcastMessages: 
-                    BroadcastMessage("On" + context.action.name, context); 
+                case InputProviderMode.BroadcastMessages:
+                    BroadcastMessage("On" + context.action.name, m_inputValue, SendMessageOptions.DontRequireReceiver);
                     break;
             }
+
+            m_inputValue = null;
         }
 
         public void GenerateKeys()
         {
             int Keys = 0;
-            int MapReferenceLength = 0;
-            if (MapReference == null)
+            int m_mapLength = 0;
+            if (m_map == null)
             {
-                MapReference = Asset.FindActionMap(ActionMapName);
-                MapReferenceLength = MapReference.actions.Count;
+                m_map = asset.FindActionMap(actionMapName);
+                m_mapLength = m_map.actions.Count;
             }
 
-            if (MapKeys == null || MapKeys.Length == 0 || MapKeys.Length != MapReferenceLength)
+            if (mapKeys == null || mapKeys.Length == 0 || mapKeys.Length != m_mapLength)
             {
-                MapKeys = new bool[MapReferenceLength];
-                for (int i = 0; i < MapKeys.Length; i++)
+                mapKeys = new bool[m_mapLength];
+                for (int i = 0; i < mapKeys.Length; i++)
                 {
-                    MapKeys[i] = true;
+                    mapKeys[i] = true;
                     Keys++;
                 }
 
-                Debug.Log("Generated " + Keys + " Keys", gameObject, EnableDebug);
+                Debug.Log("Generated " + Keys + " Keys", gameObject, m_enableDebug);
             }
         }
 
@@ -147,14 +160,14 @@ namespace GameEngine
 
         public bool Rebind(string ActionName, System.Action OnComplete, string Exclude)
         {
-            if(Operation != null)
+            if(m_operation != null)
             {
-                Debug.LogError("Current Rebinding Operation Running <"+Operation.action.name+">", gameObject, EnableDebug);
+                Debug.LogError("Current Rebinding Operation Running <"+m_operation.action.name+">", gameObject, m_enableDebug);
                 return false;
             }
 
-            InputAction Action = MapReference.FindAction(ActionName);
-            Operation = Action.PerformInteractiveRebinding()
+            InputAction Action = m_map.FindAction(ActionName);
+            m_operation = Action.PerformInteractiveRebinding()
                 .WithControlsExcluding(Exclude)
                 .OnMatchWaitForAnother(0.1f)
                 .OnComplete(op => { 
@@ -164,15 +177,15 @@ namespace GameEngine
                 })
                 .Start();
 
-            return Operation.started;
+            return m_operation.started;
         }
 
         private void RebindCompleted()
         {
-            Operation.Dispose();
-            Operation = null;
+            m_operation.Dispose();
+            m_operation = null;
 
-            Debug.Log("Rebind Completed", gameObject, EnableDebug);
+            Debug.Log("Rebind Completed", gameObject, m_enableDebug);
         }
 
         #endregion
