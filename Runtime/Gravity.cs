@@ -29,46 +29,40 @@ namespace GameEngine
 
         protected void Update()
         {
-            if (m_rigidbody.useGravity && updateMethod == UpdateMethod.Update)
+            if (updateMethod == UpdateMethod.Update)
             {
-                m_vector = (target) ?
-                    target.position - transform.position :
-                    targetVector - transform.position;
-
-                direction = m_vector.normalized;
-                m_scaledForce = force * Mathf.Clamp01(scale);
-                m_acceleration = m_rigidbody.mass * (direction * m_scaledForce);
-                m_rigidbody.AddForce(m_acceleration, ForceMode.Force);
+                CalculateGravity();
             }
         }
 
         protected void FixedUpdate()
         {
-            if (m_rigidbody.useGravity && updateMethod == UpdateMethod.FixedUpdate)
+            if (updateMethod == UpdateMethod.FixedUpdate)
             {
-                m_vector = (target) ? 
-                    target.position - transform.position :
-                    targetVector - transform.position;
-
-                direction = m_vector.normalized;
-                m_scaledForce = force * Mathf.Clamp01(scale);
-                m_acceleration = m_rigidbody.mass * (direction * m_scaledForce);
-                m_rigidbody.AddForce(m_acceleration, ForceMode.Force);
+                CalculateGravity();
             }
         }
 
         protected void LateUpdate()
         {
-            if (m_rigidbody.useGravity && updateMethod == UpdateMethod.LateUpdate)
+            if (updateMethod == UpdateMethod.LateUpdate)
+            {
+                CalculateGravity();
+            }
+        }
+
+        private void CalculateGravity()
+        {
+            if (m_rigidbody.useGravity)
             {
                 m_vector = (target) ?
-                    target.position - transform.position :
-                    targetVector - transform.position;
+                       target.position - transform.position :
+                       targetVector - transform.position;
 
                 direction = m_vector.normalized;
                 m_scaledForce = force * Mathf.Clamp01(scale);
-                m_acceleration = m_rigidbody.mass * (direction * m_scaledForce);
-                m_rigidbody.AddForce(m_acceleration, ForceMode.Force);
+                m_acceleration = direction * m_scaledForce;
+                m_rigidbody.AddForce(m_acceleration, ForceMode.Acceleration);
             }
         }
 

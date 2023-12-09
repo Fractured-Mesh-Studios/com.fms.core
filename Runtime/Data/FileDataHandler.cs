@@ -18,8 +18,13 @@ public class FileDataHandler
 
     public T Load<T>()
     {
-        string fullPath = Path.Combine(m_path, m_filename);
+        JsonSerializerSettings settings = new JsonSerializerSettings();
+        settings.Formatting = Formatting.Indented;
+        settings.NullValueHandling = NullValueHandling.Include;
+        settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+
         T loadedData = default;
+        string fullPath = Path.Combine(m_path, m_filename);
         if (File.Exists(fullPath))
         {
             try
@@ -33,7 +38,7 @@ public class FileDataHandler
                     }
                 }
 
-                loadedData = JsonUtility.FromJson<T>(dataToLoad);
+                loadedData = JsonConvert.DeserializeObject<T>(dataToLoad, settings);
 
             } catch (Exception e) {
                 Debug.LogException(e);
@@ -43,7 +48,7 @@ public class FileDataHandler
         return loadedData;
     }
 
-    public T[] LoadArray<T>() 
+    /*public T[] LoadArray<T>() 
     {
         string fullPath = Path.Combine(m_path, m_filename);
 
@@ -75,16 +80,21 @@ public class FileDataHandler
         }
 
         return loadedData;
-    }
+    }*/
 
     public void Save<T>(T data) 
     {
+        JsonSerializerSettings settings = new JsonSerializerSettings();   
+        settings.Formatting = Formatting.Indented;
+        settings.NullValueHandling = NullValueHandling.Include;
+        settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+
         string fullPath = Path.Combine(m_path, m_filename);
         try 
         {
             Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
             
-            string dataToStore = JsonUtility.ToJson(data, true);
+            string dataToStore = JsonConvert.SerializeObject(data, settings);
 
             using (FileStream fs = new FileStream(fullPath, FileMode.Create))
             {
@@ -99,7 +109,7 @@ public class FileDataHandler
         }
     }
 
-    public void SaveArray<T>(T[] data)
+    /*public void SaveArray<T>(T[] data)
     {
         string fullPath = Path.Combine(m_path, m_filename);
         try
@@ -121,5 +131,5 @@ public class FileDataHandler
         {
             Debug.LogException(e);
         }
-    }
+    }*/
 }

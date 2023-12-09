@@ -2,19 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using GameEngine;
+using GameEngine.Data;
 using System.Diagnostics;
+using System.Linq;
 
-namespace GameEditor
+namespace GameEditor.Data
 {
-    [CustomEditor(typeof(DataManager))]
-    public class DataManagerEditor : Editor
+    [CustomEditor(typeof(DataLoader))]
+    public class DataLoaderEditor : Editor
     {
-        private DataManager m_target;
+        private DataLoader m_target;
 
         private void OnEnable()
         {
-            m_target = (DataManager)target; 
+            m_target = (DataLoader)target; 
         }
 
         public override void OnInspectorGUI()
@@ -35,6 +36,12 @@ namespace GameEditor
             if (GUILayout.Button("Path"))
             {
                 Process.Start(Application.persistentDataPath);
+            }
+            if (GUILayout.Button("Setup"))
+            {
+                var components = m_target.GetComponents<Component>();
+
+                m_target.components = components.Where(x => x != m_target).ToList();
             }
         }
 

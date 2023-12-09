@@ -1,26 +1,26 @@
 using UnityEngine;
 
-namespace GameEngine.Translation
+namespace GameEngine.Data
 {
     [System.Serializable]
-    public class Transform
+    public class STransform
     {
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 scale;
 
-        public Transform()
+        public STransform()
         {
             position = Vector3.zero;
             rotation = Quaternion.identity;
             scale = Vector3.one;
         }
 
-        public Transform(UnityEngine.Transform NewTransform)
+        public STransform(Transform transform)
         {
-            position = NewTransform.position;
-            rotation = NewTransform.rotation;
-            scale = NewTransform.localScale;
+            position = transform.position;
+            rotation = transform.rotation;
+            scale = transform.localScale;
         }
 
         public override string ToString()
