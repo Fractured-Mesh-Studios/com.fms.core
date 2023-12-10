@@ -1,135 +1,143 @@
 
-using System.IO;
 using System;
-using System.Linq;
+using System.IO;
+using System.Text;
+using System.Security.Cryptography;
+
 using UnityEngine;
 using Newtonsoft.Json;
 
-public class FileDataHandler
+namespace GameEngine.Data
 {
-    private string m_path;
-    private string m_filename;
-
-    public FileDataHandler(string path, string name)
+    public class FileDataHandler
     {
-        m_path = path;
-        m_filename = name;
-    }
+        private string m_path;
+        private string m_filename;
+        private string m_key;
 
-    public T Load<T>()
-    {
-        JsonSerializerSettings settings = new JsonSerializerSettings();
-        settings.Formatting = Formatting.Indented;
-        settings.NullValueHandling = NullValueHandling.Include;
-        settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-
-        T loadedData = default;
-        string fullPath = Path.Combine(m_path, m_filename);
-        if (File.Exists(fullPath))
+        public FileDataHandler(string path, string name)
         {
-            try
-            {
-                string dataToLoad = String.Empty;
-                using (FileStream FileStream = new FileStream(fullPath, FileMode.Open))
-                {
-                    using (StreamReader Reader = new StreamReader(FileStream))
-                    {
-                        dataToLoad = Reader.ReadToEnd();
-                    }
-                }
-
-                loadedData = JsonConvert.DeserializeObject<T>(dataToLoad, settings);
-
-            } catch (Exception e) {
-                Debug.LogException(e);
-            }
+            m_path = path;
+            m_filename = name;
+            m_key = string.Empty;
         }
 
-        return loadedData;
-    }
-
-    /*public T[] LoadArray<T>() 
-    {
-        string fullPath = Path.Combine(m_path, m_filename);
-
-        JsonSerializerSettings settings = new JsonSerializerSettings();
-        settings.Formatting = Formatting.Indented;
-        settings.NullValueHandling = NullValueHandling.Include;
-
-        T[] loadedData = default;
-        if (File.Exists(fullPath))
+        public FileDataHandler(string path, string name, string key)
         {
-            try
-            {
-                string dataToLoad = String.Empty;
-                using (FileStream FileStream = new FileStream(fullPath, FileMode.Open))
-                {
-                    using (StreamReader Reader = new StreamReader(FileStream))
-                    {
-                        dataToLoad = Reader.ReadToEnd();
-                    }
-                }
-
-                loadedData = JsonConvert.DeserializeObject<T[]>(dataToLoad, settings);
-
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
+            m_path = path;
+            m_filename = name;
+            m_key = key;
         }
 
-        return loadedData;
-    }*/
-
-    public void Save<T>(T data) 
-    {
-        JsonSerializerSettings settings = new JsonSerializerSettings();   
-        settings.Formatting = Formatting.Indented;
-        settings.NullValueHandling = NullValueHandling.Include;
-        settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-
-        string fullPath = Path.Combine(m_path, m_filename);
-        try 
+        public T Load<T>(bool encrypted = false)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            settings.Formatting = Formatting.Indented;
+            settings.NullValueHandling = NullValueHandling.Include;
+            settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+
+            T loadedData = default;
+            string fullPath = Path.Combine(m_path, m_filename);
+            if (File.Exists(fullPath))
+            {
+                try
+                {
+                    string dataToLoad = String.Empty;
+                    if (encrypted) 
+                    {
+                        loadedData = ReadEncryptedData<T>(fullPath);
+                    } 
+                    else
+                    { 
+                        using (FileStream FileStream = new FileStream(fullPath, FileMode.Open))
+                        {
+                            using (StreamReader Reader = new StreamReader(FileStream))
+                            {
+                                dataToLoad = Reader.ReadToEnd();
+                            }
+                        
+                            loadedData = JsonConvert.DeserializeObject<T>(dataToLoad, settings);
+                        }
+                    }
+                } catch (Exception e) {
+                    Debug.LogException(e);
+                }
+            }
+
+            return loadedData;
+        }
+
+        public void Save<T>(T data, bool encrypted = false) 
+        {
+            JsonSerializerSettings settings = new JsonSerializerSettings();   
+            settings.Formatting = Formatting.Indented;
+            settings.NullValueHandling = NullValueHandling.Include;
+            settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+
+            string fullPath = Path.Combine(m_path, m_filename);
+            try 
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
             
-            string dataToStore = JsonConvert.SerializeObject(data, settings);
+                string dataToStore = JsonConvert.SerializeObject(data, settings);
 
-            using (FileStream fs = new FileStream(fullPath, FileMode.Create))
-            {
-                using(StreamWriter writer = new StreamWriter(fs))
+                using (FileStream fs = new FileStream(fullPath, FileMode.Create))
                 {
-                    writer.Write(dataToStore);  
+                    if(encrypted)
+                    {
+                        WriteEncryptedData(data, fs);
+                    }
+                    else
+                    {
+                        using(StreamWriter writer = new StreamWriter(fs))
+                        {
+                            writer.Write(dataToStore);  
+                        }
+                    }
                 }
+
+            } catch(Exception e) {
+                Debug.LogException(e);
+            }
+        }
+
+        private void WriteEncryptedData<T>(T data, FileStream stream)
+        {
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            settings.Formatting = Formatting.Indented;
+            settings.NullValueHandling = NullValueHandling.Include;
+            settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+
+            string text = JsonConvert.SerializeObject(data, settings);
+
+            if(m_key == string.Empty)
+            {
+                Debug.LogError("Encryption key is <null>");
+                return;
             }
 
-        } catch(Exception e) {
-            Debug.LogException(e);
+            AesOperation.EncryptString(m_key, text, stream);
         }
+
+        private T ReadEncryptedData<T>(string path)
+        {
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            settings.Formatting = Formatting.Indented;
+            settings.NullValueHandling = NullValueHandling.Include;
+            settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            
+            byte[] data = File.ReadAllBytes(path);
+
+            if (m_key == string.Empty)
+            {
+                Debug.LogError("Encryption key is <null>");
+                return default;
+            }
+
+            string result = AesOperation.DecryptString(m_key, data);
+
+            return JsonConvert.DeserializeObject<T>(result);
+        }
+
     }
-
-    /*public void SaveArray<T>(T[] data)
-    {
-        string fullPath = Path.Combine(m_path, m_filename);
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
-
-            string dataToStore = JsonConvert.SerializeObject(data, Formatting.Indented);
-
-            using (FileStream fs = new FileStream(fullPath, FileMode.Create))
-            {
-                using (StreamWriter writer = new StreamWriter(fs))
-                {
-                    writer.Write(dataToStore);
-                }
-            }
-
-        }
-        catch (Exception e)
-        {
-            Debug.LogException(e);
-        }
-    }*/
 }

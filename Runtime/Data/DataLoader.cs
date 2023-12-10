@@ -1,208 +1,106 @@
-using System;
+using System.Linq;
 using System.Collections;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using Newtonsoft.Json;
 
 namespace GameEngine.Data
 {
-    public class DataLoader : MonoBehaviour
+    public class DataLoader
     {
-        public List<Component> components = new List<Component>();
+        private const string m_key = "ZzP5rMHiMkWzGzh8fHP9JQ==";
+        private static FileDataHandler g_file;
+        private static bool g_encryption = false;
+        private static Dictionary<string, object> g_data = new Dictionary<string, object>();
 
-        private FileDataHandler m_file;
-        private SObject m_object;
+        #region PUBLIC
 
-        private void Awake()
-        {
-            InitializeFileHandler();
-        }
-
-        public void Load()
-        {
-            InitializeFileHandler();
-
-            if (m_file != null)
-            {
-                SObject loadedObject = m_file.Load<SObject>();
-                Rigidbody rigidbody = gameObject.GetComponent<Rigidbody>();
-
-                ApplyTransformData(loadedObject.transform);
-                ApplyRigidbodyData(rigidbody, loadedObject.rigidbody);
-
-                SComponent[] container = loadedObject.component;
-
-                ValidateComponentCount(container.Length);
-
-                for (int i = 0; i < container.Length; i++)
-                {
-                    UpdateComponentFields(i, container[i]);
-                }
-            }
-        }
-
-        public void Save()
-        {
-            InitializeFileHandler();
-
-            Rigidbody rigidbody = GetComponent<Rigidbody>();
-
-            if (m_file != null)
-            {
-                CreateObjectData(rigidbody);
-
-                m_object.component = CreateComponentContainer();
-
-                m_file.Save(m_object);
-            }
-        }
-
-        #region PRIVATE
-
-        private void InitializeFileHandler()
+        public static void Initialize(string filename)
         {
             string path = Application.persistentDataPath;
-            m_file = new FileDataHandler(path, $"{gameObject.name}.data");
+            string name = $"{filename}.data";
+
+            g_file = new FileDataHandler(path, name, m_key);
         }
 
-        private void ApplyTransformData(STransform transformData)
+        public static void Save<T>(string key, T data)
         {
-            transform.position = transformData.position;
-            transform.rotation = transformData.rotation;
-            transform.localScale = transformData.scale;
-        }
-
-        private void ApplyRigidbodyData(Rigidbody rigidbody, SRigidbody loadedRigidbody)
-        {
-            if (rigidbody != null && loadedRigidbody != null)
+            if (g_file != null)
             {
-                rigidbody.mass = loadedRigidbody.mass;
-                rigidbody.drag = loadedRigidbody.drag;
-                rigidbody.angularDrag = loadedRigidbody.angularDrag;
-                rigidbody.useGravity = loadedRigidbody.useGravity;
-                rigidbody.isKinematic = loadedRigidbody.isKinematic;
-                rigidbody.automaticCenterOfMass = loadedRigidbody.automaticCenterOfMass;
-                rigidbody.centerOfMass = loadedRigidbody.centerOfMass;
-                rigidbody.inertiaTensor = loadedRigidbody.ínertiaTensor;
-                rigidbody.inertiaTensorRotation = loadedRigidbody.inertiaTensorRotation;
-                rigidbody.interpolation = loadedRigidbody.interpolation;
-                rigidbody.collisionDetectionMode = loadedRigidbody.collisionDetectionMode;
-                rigidbody.maxLinearVelocity = loadedRigidbody.maxLinearVelocity;
-                rigidbody.maxAngularVelocity = loadedRigidbody.maxAngularVelocity;
-            }
-        }
-
-        private int ValidateComponentCount(int loadedComponentCount)
-        {
-            if (loadedComponentCount != components.Count)
-            {
-                Debug.LogWarning("The number of saved components and the number of loaded components are different", gameObject);
-                return components.Count;
-            }
-
-            return 0;
-        }
-
-        private void UpdateComponentFields(int index, SComponent loadedComponent)
-        {
-            var type = components[index].GetType();
-            var fieldInfo = GetFieldInfo(type);
-
-            for (int f = 0; f < fieldInfo.Length; f++)
-            {
-                UpdateFieldValues(index, loadedComponent, type, fieldInfo, f);
-            }
-        }
-
-        private System.Reflection.FieldInfo[] GetFieldInfo(Type type)
-        {
-            return type.GetFields(
-                System.Reflection.BindingFlags.Public |
-                System.Reflection.BindingFlags.NonPublic |
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.FlattenHierarchy
-            );
-        }
-
-        private void UpdateFieldValues(int index, SComponent loadedComponent, Type type, System.Reflection.FieldInfo[] fieldInfo, int f)
-        {
-            if (fieldInfo[f].Name == loadedComponent.field[f].name)
-            {
-                object fieldValue = loadedComponent.field[f].value;
-
-                ConvertTo(fieldInfo, f, ref fieldValue);
-
-                fieldInfo[f].SetValue(components[index], fieldValue);
-            }
-        }
-
-        private void ConvertTo(System.Reflection.FieldInfo[] fieldInfo, int f, ref object fieldValue)
-        {
-            if (fieldValue is JObject)
-            {
-                JToken token = fieldValue as JToken;
-                fieldValue = token.ToObject(fieldInfo[f].FieldType, JsonSerializer.CreateDefault());
-            }
-
-            ConvertDoubleValue(ref fieldValue);
-            ConvertLongValue(ref fieldValue);
-        }
-
-        private void ConvertDoubleValue(ref object fieldValue)
-        {
-            if (fieldValue is double)
-            {
-                double value = (double)fieldValue;
-                fieldValue = Convert.ToSingle(value);
-            }
-        }
-
-        private void ConvertLongValue(ref object fieldValue)
-        {
-            if (fieldValue is long)
-            {
-                long value = (long)fieldValue;
-                fieldValue = Convert.ToInt32(value);
-            }
-        }
-
-        private void CreateObjectData(Rigidbody rigidbody)
-        {
-            m_object.id = gameObject.GetHashCode();
-            m_object.name = gameObject.name;
-            m_object.transform = new STransform(transform);
-            m_object.rigidbody = new SRigidbody(rigidbody);
-        }
-
-        private SComponent[] CreateComponentContainer()
-        {
-            List<SComponent> componentContainer = new List<SComponent>();
-            for (int i = 0; i < components.Count; i++)
-            {
-                var type = components[i].GetType();
-                var IsComponent = type.IsSubclassOf(typeof(Component));
-            
-                var fieldInfo = GetFieldInfo(type);
-
-                List<SField> Fields = new List<SField>();
-                foreach (var field in fieldInfo)
+                if (!g_data.ContainsKey(key))
                 {
-                    object Value = field.GetValue(components[i]);
-
-                    if (field.FieldType.IsSerializable)
-                        Fields.Add(new SField(field.Name, Value));
+                    g_data.Add(key, data);
+                }
+                else
+                {
+                    g_data[key] = data;
                 }
 
-                SComponent component = new SComponent(
-                    type.Name,
-                    IsComponent,
-                    Fields.ToArray()
-                );
-
-                componentContainer.Add(component);
+                g_file.Save(g_data, g_encryption);
             }
-            return componentContainer.ToArray();
+            else
+            {
+                Debug.LogError("The static loading and saving system needs to be initialized before it can be used in the project.");
+            }
+
+        }
+
+        public static T Load<T>(string key)
+        {
+            if (g_file != null)
+            {
+                g_data = g_file.Load<Dictionary<string, object>>(g_encryption);
+
+                var data = g_data.Where(x => x.Key == key);
+
+                return (T)data.FirstOrDefault().Value;
+            }
+            else
+            {
+                Debug.LogError("The static loading and saving system needs to be initialized before it can be used in the project.");
+                return default;
+            }
+        }
+
+        public static void LoadInto<T>(string key, ref T data)
+        {
+            data = Load<T>(key);
+        }
+
+        public static KeyValuePair<string, object>[] LoadAll()
+        {
+            if (g_file != null)
+            {
+                g_data = g_file.Load<Dictionary<string, object>>(g_encryption);
+
+                List<KeyValuePair<string, object>> values = new List<KeyValuePair<string, object>>();
+                foreach (var item in g_data)
+                {
+                    values.Add(item);
+                }
+
+                return values.ToArray();
+            }
+            else
+            {
+                Debug.LogError("The static loading and saving system needs to be initialized before it can be used in the project.");
+                return null;
+            }
+        }
+
+        #endregion
+
+        #region KEYHANDLING
+
+        public static void RemoveKey(string key)
+        {
+            g_data.Remove(key);
+            g_file.Save(g_data, g_encryption);
+        }
+
+        public static bool ContainsKey(string key)
+        {
+            g_data = g_file.Load<Dictionary<string, object>>(g_encryption);
+            return g_data.ContainsKey(key);
         }
 
         #endregion

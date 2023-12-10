@@ -3,39 +3,43 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using GameEngine.Data;
-using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System;
 
 namespace GameEditor.Data
 {
-    [CustomEditor(typeof(DataLoader))]
-    public class DataLoaderEditor : Editor
+    [CustomEditor(typeof(ObjectLoader))]
+    public class ObjectLoaderEditor : Editor
     {
-        private DataLoader m_target;
+        private ObjectLoader m_target;
 
         private void OnEnable()
         {
-            m_target = (DataLoader)target; 
+            m_target = (ObjectLoader)target;
         }
 
         public override void OnInspectorGUI()
         {
+            KeyInspector();
             DrawDefaultInspector();
 
+            GUILayout.Space(10);
+            EditorGUILayout.BeginVertical("Box");
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Load"))
             {
                 m_target.Load();
             }
-            GUILayout.Space(5);
             if (GUILayout.Button("Save"))
             {
                 m_target.Save();
             }
             EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Path"))
             {
-                Process.Start(Application.persistentDataPath);
+                System.Diagnostics.Process.Start(Application.persistentDataPath);
             }
             if (GUILayout.Button("Setup"))
             {
@@ -43,6 +47,15 @@ namespace GameEditor.Data
 
                 m_target.components = components.Where(x => x != m_target).ToList();
             }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+        }
+
+        private void KeyInspector()
+        {
+            BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+            var keyField = m_target.GetType().GetField("m_key", flags);
+            EditorGUILayout.TextField((string)keyField.GetValue(m_target));
         }
 
     }
