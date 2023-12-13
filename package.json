@@ -1,8 +1,8 @@
 {
   "name": "com.fms.core",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "displayName": "Core",
-  "description": "Author: Jorge Nauel Gerones.\nThis is the base scripts for all of addons",
+  "description": "Author: Jorge Nauel Gerones.\nThis plugin is a base of utilities for games created with the Unity graphics engine.",
   "unity": "2021.1",
   "unityRelease": "0b5",
   "documentationUrl": "https://example.com/",

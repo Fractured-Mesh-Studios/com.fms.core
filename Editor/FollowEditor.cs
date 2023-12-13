@@ -14,7 +14,6 @@ namespace GameEditor
         private void OnEnable()
         {
             m_target = (Follow)target;
-            Rigidbody a;
         }
 
         public override void OnInspectorGUI()

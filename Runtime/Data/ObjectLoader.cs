@@ -7,65 +7,37 @@ using UnityEngine;
 //Newtonsoft
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Linq;
+
+using Debug = DebugEngine.Debug;
+using System.Xml.Linq;
 
 namespace GameEngine.Data
 {
     public class ObjectLoader : MonoBehaviour
     {
-        public bool m_encryption = false;
+        public bool encryption = false;
         public List<Component> components = new List<Component>();
 
-        private SObject m_object;
-        private FileDataHandler m_file;
+        private FileDataHandler m_file = null;
+        private SerializedData m_data = new SerializedData();
         private const string m_key = "ZzP5rMHiMkWzGzh8fHP9JQ==";
 
         public void Load()
         {
-            InitializeFileHandler();
+            Initialize();
 
-            if (m_file != null)
-            {
-                SObject loadedObject = m_file.Load<SObject>(m_encryption);
-                Rigidbody rigidbody = gameObject.GetComponent<Rigidbody>();
-
-                if(loadedObject == null)
-                {
-                    Debug.LogError($"Error on load file data corruption or invalid encryption key");
-                    return;
-                }
-
-                ApplyTransformData(loadedObject.transform);
-                ApplyRigidbodyData(rigidbody, loadedObject.rigidbody);
-
-                SComponent[] container = loadedObject.component;
-
-                ValidateComponentCount(container.Length);
-
-                for (int i = 0; i < container.Length; i++)
-                {
-                    UpdateComponentFields(i, container[i]);
-                }
-            }
+            OnLoad();
         }
 
         public void Save()
         {
-            InitializeFileHandler();
+            Initialize();
 
-            if (m_file != null)
-            {
-                CreateObjectData();
-
-                m_object.component = CreateComponentContainer();
-
-                m_file.Save(m_object, m_encryption);
-            }
+            OnSave();
         }
 
         #region PRIVATE
-
-        private void InitializeFileHandler()
+        private void Initialize()
         {
             string path = Application.persistentDataPath;
             string name = $"{gameObject.name}.data";
@@ -73,55 +45,119 @@ namespace GameEngine.Data
             m_file = new FileDataHandler(path, name, m_key);
         }
 
-        private void ApplyTransformData(STransform transformData)
+        private void OnLoad()
         {
-            transform.position = transformData.position;
-            transform.rotation = transformData.rotation;
-            transform.localScale = transformData.scale;
-        }
+            m_data = m_file.Load<SerializedData>();
 
-        private void ApplyRigidbodyData(Rigidbody rigidbody, SRigidbody loadedRigidbody)
-        {
-            if (rigidbody != null && loadedRigidbody != null)
+            foreach (var Key in m_data.Keys)
             {
-                rigidbody.mass = loadedRigidbody.mass;
-                rigidbody.drag = loadedRigidbody.drag;
-                rigidbody.angularDrag = loadedRigidbody.angularDrag;
-                rigidbody.useGravity = loadedRigidbody.useGravity;
-                rigidbody.isKinematic = loadedRigidbody.isKinematic;
-                rigidbody.automaticCenterOfMass = loadedRigidbody.automaticCenterOfMass;
-                rigidbody.centerOfMass = loadedRigidbody.centerOfMass;
-                rigidbody.inertiaTensor = loadedRigidbody.ínertiaTensor;
-                rigidbody.inertiaTensorRotation = loadedRigidbody.inertiaTensorRotation;
-                rigidbody.interpolation = loadedRigidbody.interpolation;
-                rigidbody.collisionDetectionMode = loadedRigidbody.collisionDetectionMode;
-                rigidbody.maxLinearVelocity = loadedRigidbody.maxLinearVelocity;
-                rigidbody.maxAngularVelocity = loadedRigidbody.maxAngularVelocity;
+                for (int i = 0; i < components.Count; i++)
+                {
+                    var element = components[i];
+                    var type = components[i].GetType();
+
+                    if (type.Name == Key)
+                    {
+                        //Fields
+                        var field = GetFieldInfo(type);
+                        for (int f = 0; f < field.Length; f++)
+                        {
+                            var name = field[f].Name;
+                            var ftype = field[f].FieldType;
+
+                            if (m_data[type.Name].ContainsKey(name))
+                            {
+                                var value = m_data[type.Name][name];
+                                ConvertTo(ftype, ref value);
+                                field[f].SetValue(element, value);
+                            }
+                            else
+                            {
+                                Debug.Log($"Ignored Key: {name}".Color(Color.yellow), gameObject);
+                            }
+                        }
+
+                        //Properties
+                        var property = GetPropertyInfo(type);
+                        for (int p = 0; p < property.Length; p++)
+                        {
+                            var pType = property[p].PropertyType;
+                            var canWrite = property[p].CanWrite;
+                            var canRead = property[p].CanRead;
+
+                            if (pType.IsSerializable && canWrite && canRead)
+                            {
+                                var name = property[p].Name;
+                                var value = m_data[type.Name][name];
+
+                                ConvertTo(ref value);
+
+                                property[p].SetValue(element, value, null);
+                            }
+
+                        }
+
+                        LoadTransform(type, transform);
+                    }
+                }
             }
         }
 
-        private int ValidateComponentCount(int loadedComponentCount)
+        private void OnSave()
         {
-            if (loadedComponentCount != components.Count)
+            m_data.Clear();
+
+            for (int i = 0; i < components.Count; i++)
             {
-                Debug.LogWarning("The number of saved components and the number of loaded components are different", gameObject);
-                return components.Count;
+                var element = components[i];
+                var type = element.GetType();
+
+                if (!m_data.ContainsKey(type.Name))
+                    m_data.Add(type.Name, new Dictionary<string, object>());
+                else
+                {
+                    Debug.LogWarning("Repited Component!");
+                    continue;
+                }
+
+                var field = GetFieldInfo(type);
+                for (int f = 0; f < field.Length; f++)
+                {
+                    var name = field[f].Name;
+                    var value = field[f].GetValue(element);
+
+                    if (!IsBackingField(field[f]))
+                    {
+                        m_data[type.Name].Add(name, value);
+                    }
+                }
+
+                var property = GetPropertyInfo(type);
+                for (int p = 0; p < property.Length; p++)
+                {
+                    var pType = property[p].PropertyType;
+                    var canWrite = property[p].CanWrite;
+                    var canRead = property[p].CanRead;
+
+
+                    if (pType.IsSerializable && canWrite && canRead)
+                    {
+                        var name = property[p].Name;
+                        var value = property[p].GetValue(element);
+
+                        m_data[type.Name].Add(name, value);
+                    }
+
+                    SaveTransform(type, pType, transform);
+                }
+
             }
 
-            return 0;
+            m_file.Save(m_data);
         }
+        #endregion
 
-        private void UpdateComponentFields(int index, SComponent loadedComponent)
-        {
-            var type = components[index].GetType();
-            var fieldInfo = GetFieldInfo(type);
-
-            for (int f = 0; f < fieldInfo.Length; f++)
-            {
-                UpdateFieldValues(index, loadedComponent, fieldInfo, f);
-            }
-        }
-
+        #region REFLECTION
         private FieldInfo[] GetFieldInfo(Type type)
         {
             return type.GetFields(
@@ -132,24 +168,41 @@ namespace GameEngine.Data
             );
         }
 
-        private void UpdateFieldValues(int index, SComponent loadedComponent,FieldInfo[] fieldInfo, int f)
+        private PropertyInfo[] GetPropertyInfo(Type type)
         {
-            if (fieldInfo[f].Name == loadedComponent.field[f].name)
+            return type.GetProperties(
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance
+            );
+        }
+
+        private bool IsBackingField(FieldInfo field)
+        {
+            return field.Name.StartsWith("<") && field.Name.EndsWith(">k__BackingField");
+        }
+
+        private void ConvertTo(ref object propValue)
+        {
+            if (propValue is long)
             {
-                object fieldValue = loadedComponent.field[f].value;
+                long value = (long)propValue;
+                propValue = Convert.ToInt32(value);
+            }
 
-                ConvertTo(fieldInfo, f, ref fieldValue);
-
-                fieldInfo[f].SetValue(components[index], fieldValue);
+            if (propValue is double)
+            {
+                double value = (double)propValue;
+                propValue = Convert.ToSingle(value);
             }
         }
 
-        private void ConvertTo(FieldInfo[] fieldInfo, int f, ref object fieldValue)
+        private void ConvertTo(Type type, ref object fieldValue)
         {
             if (fieldValue is JObject)
             {
                 JToken token = fieldValue as JToken;
-                fieldValue = token.ToObject(fieldInfo[f].FieldType, JsonSerializer.CreateDefault());
+                fieldValue = token.ToObject(type, JsonSerializer.CreateDefault());
             }
 
             if (fieldValue is long)
@@ -164,48 +217,48 @@ namespace GameEngine.Data
                 fieldValue = Convert.ToSingle(value);
             }
         }
+        #endregion
 
-        private void CreateObjectData()
+        #region TRANSFORM
+        private void LoadTransform(Type element, Transform tr)
         {
-            Rigidbody rigidbody = GetComponent<Rigidbody>();
-
-            m_object = new SObject();
-            m_object.id = gameObject.GetHashCode();
-            m_object.name = gameObject.name;
-            m_object.transform = new STransform(transform);
-            m_object.rigidbody = new SRigidbody(rigidbody);
-        }
-
-        private SComponent[] CreateComponentContainer()
-        {
-            List<SComponent> container = new List<SComponent>();
-            for (int i = 0; i < components.Count; i++)
+            if (element == typeof(Transform))
             {
-                var type = components[i].GetType();
-                var IsComponent = type.IsSubclassOf(typeof(Component));
-            
-                var fieldInfo = GetFieldInfo(type);
+                object position = m_data[element.Name]["position"];
+                object rotation = m_data[element.Name]["rotation"];
+                object scale = m_data[element.Name]["scale"];
 
-                List<SField> Fields = new List<SField>();
-                foreach (var field in fieldInfo)
-                {
-                    object Value = field.GetValue(components[i]);
+                ConvertTo(typeof(Vector3), ref position);
+                ConvertTo(typeof(Quaternion), ref rotation);
+                ConvertTo(typeof(Vector3), ref scale);
 
-                    if (field.FieldType.IsSerializable)
-                        Fields.Add(new SField(field.Name, Value));
-                }
-
-                SComponent component = new SComponent(
-                    type.Name,
-                    IsComponent,
-                    Fields.ToArray()
-                );
-
-                container.Add(component);
+                if (m_data[element.Name].ContainsKey("position"))
+                    tr.position = (Vector3)position;
+                if (m_data[element.Name].ContainsKey("rotation"))
+                    tr.rotation = (Quaternion)rotation;
+                if (m_data[element.Name].ContainsKey("scale"))
+                    tr.localScale = (Vector3)scale;
             }
-            return container.ToArray();
         }
 
+        private void SaveTransform(Type element, Type prop, Transform tr)
+        {
+            if (prop == typeof(Transform) && element == typeof(Transform))
+            {
+                var position = prop.GetProperty("position");
+                var rotation = prop.GetProperty("rotation");
+                var scale = prop.GetProperty("lossyScale");
+
+                if (!m_data[element.Name].ContainsKey("position"))
+                    m_data[element.Name].Add("position", position.GetValue(tr));
+                if (!m_data[element.Name].ContainsKey("rotation"))
+                    m_data[element.Name].Add("rotation", rotation.GetValue(tr));
+                if (!m_data[element.Name].ContainsKey("scale"))
+                    m_data[element.Name].Add("scale", scale.GetValue(tr));
+            }
+        }
         #endregion
     }
+
+    public class SerializedData : Dictionary<string, Dictionary<string, object>> { }
 }

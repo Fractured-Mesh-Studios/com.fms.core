@@ -44,7 +44,6 @@ namespace GameEditor.Data
             if (GUILayout.Button("Setup"))
             {
                 var components = m_target.GetComponents<Component>();
-
                 m_target.components = components.Where(x => x != m_target).ToList();
             }
             EditorGUILayout.EndHorizontal();
