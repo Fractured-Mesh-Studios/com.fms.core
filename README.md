@@ -49,6 +49,7 @@ Esta libreria es usada para cualquier proyecto. solo es una ayuda para crear pro
   - Un sistema de grilla simple y presonalizable itegrado.
   - Gravedad personalizada para el motor de fisicas (Physics Engine) con un solo script modular.
   - Funciones de "Easing" para interpolacion de datos y una sensacion mas suavizada de las transformaciones de los objetos.
+  - Sistema de cargado y guardado de datos (Aes Encryption) por archivos JSON.
 
 ## Capturas de Pantalla
 
