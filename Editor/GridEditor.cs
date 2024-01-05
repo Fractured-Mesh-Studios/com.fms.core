@@ -8,9 +8,9 @@ using Unity.VisualScripting;
 
 // IngredientDrawerUIE
 
-namespace GameEditor
+namespace CoreEditor
 { 
-    [CustomPropertyDrawer(typeof(GameEngine.Grid))]
+    [CustomPropertyDrawer(typeof(CoreEngine.Grid))]
     public class GridEditor : PropertyDrawer
     {
 

@@ -2,12 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using GameEngine.Data;
+using CoreEngine.Data;
 using System.Linq;
 using System.Reflection;
 using System;
 
-namespace GameEditor.Data
+namespace CoreEditor.Data
 {
     [CustomEditor(typeof(ObjectLoader))]
     public class ObjectLoaderEditor : Editor

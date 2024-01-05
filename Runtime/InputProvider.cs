@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using Debug = DebugEngine.Debug;
 
-namespace GameEngine
+namespace CoreEngine
 {
     public class InputProvider : MonoBehaviour
     {
@@ -29,6 +29,7 @@ namespace GameEngine
         private InputActionMap m_map;
         private InputActionRebindingExtensions.RebindingOperation m_operation;
         private bool m_overInterface;
+        internal InputValue m_inputValue;
 
         private void OnEnable()
         {
@@ -101,7 +102,6 @@ namespace GameEngine
         }
         #endregion
 
-        internal InputValue m_inputValue;
 
         private void AddMessage(InputAction.CallbackContext context)
         {

@@ -14,7 +14,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace GameEngine.Data
+namespace CoreEngine.Data
 {
     public class FileDataHandler
     {

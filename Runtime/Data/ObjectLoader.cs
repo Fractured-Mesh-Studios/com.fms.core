@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 using Debug = DebugEngine.Debug;
 using System.Xml.Linq;
 
-namespace GameEngine.Data
+namespace CoreEngine.Data
 {
     public class ObjectLoader : MonoBehaviour
     {

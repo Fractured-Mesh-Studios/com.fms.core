@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using GameEngine;
+using CoreEngine;
 
-namespace GameEditor
+namespace CoreEditor
 {
     [CustomEditor(typeof(Gravity))]
     public class GravityEditor : Editor

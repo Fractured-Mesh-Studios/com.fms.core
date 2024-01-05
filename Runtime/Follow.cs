@@ -6,7 +6,7 @@ using UnityEngine.Events;
 
 using Debug = DebugEngine.Debug;
 
-namespace GameEngine
+namespace CoreEngine
 {
     public class Follow : MonoBehaviour
     {

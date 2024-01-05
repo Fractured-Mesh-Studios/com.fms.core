@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace CoreEngine
 {
-    public class Tag : MonoBehaviour
+    public class RequiredObject : PropertyAttribute
     {
-        public List<string> tags = new List<string>();
+        
     }
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Debug = DebugEngine.Debug;
 
-namespace GameEngine
+namespace CoreEngine
 {
     [System.Serializable]
     public class Grid

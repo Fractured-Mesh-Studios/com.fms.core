@@ -1,10 +1,10 @@
-using GameEngine;
+using CoreEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace GameEditor
+namespace CoreEditor
 {
     [CustomEditor(typeof(LODLight))]
     public class LODLightEditor : Editor

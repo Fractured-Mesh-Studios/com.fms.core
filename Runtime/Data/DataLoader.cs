@@ -5,7 +5,7 @@ using UnityEngine;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace GameEngine.Data
+namespace CoreEngine.Data
 {
     public class DataLoader
     {

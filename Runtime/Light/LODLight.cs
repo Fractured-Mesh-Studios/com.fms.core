@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace GameEngine
+namespace CoreEngine
 {
     [RequireComponent(typeof(Light))]
     public class LODLight : MonoBehaviour

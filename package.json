@@ -1,6 +1,6 @@
 {
   "name": "com.fms.core",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "displayName": "Core",
   "description": "Author: Jorge Nauel Gerones.\nThis plugin is a base of utilities for games created with the Unity graphics engine.",
   "unity": "2021.1",
@@ -13,7 +13,7 @@
     "url": "https://github.com/JorgeGerones/com.jng.core.git"
   },
   "keywords": [
-    "GameEngine",
+    "CoreEngine",
     "Core",
     "JNG"
   ],

@@ -1,6 +1,6 @@
 {
     "name": "Core-Editor",
-    "rootNamespace": "GameEditor",
+    "rootNamespace": "CoreEditor",
     "references": [
         "GUID:a971c519cc134d041bb0f368f586492b",
         "GUID:75469ad4d38634e559750d17036d5f7c"

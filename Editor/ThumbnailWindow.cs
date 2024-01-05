@@ -6,7 +6,7 @@ using UnityEditor.PackageManager.UI;
 using System.IO;
 using Codice.Utils;
 
-namespace GameEditor
+namespace CoreEditor
 {
     public class ThumbnailWindow : EditorWindow
     {

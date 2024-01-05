@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace GameEngine.Data
+namespace CoreEngine.Data
 {
     public class AesOperation
     {

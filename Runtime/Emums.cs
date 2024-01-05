@@ -1,5 +1,5 @@
 
-namespace GameEngine
+namespace CoreEngine
 {
 	public enum CoordinateType
 	{
