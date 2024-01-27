@@ -113,5 +113,24 @@ namespace CoreEngine
             return vertices;
         }
         #endregion
+
+        #region Bounds
+        public static Vector3[] GetBoundPoints(this Bounds bounds)
+        {
+            Vector3[] result = new Vector3[8];
+
+            result[0] = bounds.min;
+            result[1] = bounds.max;
+            result[2] = new Vector3(result[0].x, result[0].y, result[1].z);
+            result[3] = new Vector3(result[0].x, result[1].y, result[0].z);
+            result[4] = new Vector3(result[1].x, result[0].y, result[0].z);
+            result[5] = new Vector3(result[0].x, result[1].y, result[1].z);
+            result[6] = new Vector3(result[1].x, result[0].y, result[1].z);
+            result[7] = new Vector3(result[1].x, result[1].y, result[0].z);
+
+            return result;
+        }
+
+        #endregion
     }
 }

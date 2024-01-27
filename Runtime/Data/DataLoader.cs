@@ -3,28 +3,74 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System;
 
 namespace CoreEngine.Data
 {
     public class DataLoader
     {
+        public enum DataLoaderPath
+        {
+            Root,
+            Assets,
+            Custom,
+            Default,
+            Persistent,
+        }
+
         public static bool autoSave = false;
+        public static DataLoaderPath pathType = DataLoaderPath.Persistent;
+        public static string path = Application.dataPath + "/Data";
+        public static string key = AesOperation.KEY;
+        public static bool encryption = false;
+        
+        //properties
+        public static string currentPath { 
+            get {
+                string path = string.Empty;
+                switch (pathType)
+                {
+                    case DataLoaderPath.Root: path = Environment.CurrentDirectory; break;
+                    case DataLoaderPath.Assets: path = Application.dataPath; break;
+                    case DataLoaderPath.Custom: path = DataLoader.path; break;
+                    case DataLoaderPath.Default: path = Application.consoleLogPath; break;
+                    case DataLoaderPath.Persistent: path = Application.persistentDataPath; break;
+                    default: break;
+                }
+                return path;
+            } 
+        }
 
         private class SerializedData : Dictionary<string, object> { }
-        private const string m_key = "ZzP5rMHiMkWzGzh8fHP9JQ==";
         private static SerializedData g_data = new SerializedData();
         private static FileDataHandler g_file;
-        private static bool g_encryption = false;
         private static string g_path;
 
-        public static void Initialize(string filename)
+        public static void Initialize(string filename, string extension = "data")
         {
-            string path = Application.persistentDataPath;
-            string name = $"{filename}.data";
+            string path = string.Empty;
+            switch (pathType)
+            {
+                case DataLoaderPath.Root: path = Environment.CurrentDirectory; break;
+                case DataLoaderPath.Assets: path = Application.dataPath; break;
+                case DataLoaderPath.Custom: path = DataLoader.path; break;
+                case DataLoaderPath.Default: path = Application.consoleLogPath; break;
+                case DataLoaderPath.Persistent: path = Application.persistentDataPath; break;
+                default: break;
+            }
+
+            string name = $"{filename}.{extension}";
 
             g_path = path;
-            g_file = new FileDataHandler(path, name, m_key);
+            g_file = new FileDataHandler(path, name, key);
+            g_data.Clear();
+        }
+
+        public static void Initialize(string filename, string path, string extension = "data")
+        {
+            string name = $"{filename}.{extension}";
+            g_path = path;
+            g_file = new FileDataHandler(path, name, key);
             g_data.Clear();
         }
 
@@ -33,7 +79,7 @@ namespace CoreEngine.Data
         {
             if (g_file != null)
             {
-                g_data = g_file.Load<SerializedData>(g_encryption);
+                g_data = g_file.Load<SerializedData>(encryption);
 
                 var data = g_data.Where(x => x.Key == key);
 
@@ -46,6 +92,24 @@ namespace CoreEngine.Data
             }
         }
 
+        public static string LoadRaw()
+        {
+            if (g_file != null)
+            {
+                return g_file.LoadRaw();
+            }
+            else
+            {
+                Debug.LogError("The static loading and saving system needs to be initialized before it can be used in the project.");
+                return default;
+            }
+        }
+
+        public static void LoadRawInto(ref string data)
+        {
+            data = LoadRaw();
+        }
+
         public static void LoadInto<T>(string key, ref T data)
         {
             data = Load<T>(key);
@@ -55,7 +119,7 @@ namespace CoreEngine.Data
         #region SAVE
         public static void Save()
         {
-            g_file.Save(g_data, g_encryption);
+            g_file.Save(g_data, encryption);
         }
 
         public static void Save<T>(string key, T data)
@@ -71,13 +135,25 @@ namespace CoreEngine.Data
                     g_data[key] = data;
                 }
 
-                g_file.Save(g_data, g_encryption);
+                g_file.Save(g_data, encryption);
             }
             else
             {
                 Debug.LogError("The static loading and saving system needs to be initialized before it can be used in the project.");
             }
 
+        }
+
+        public static void SaveRaw(string data)
+        {
+            if (g_file != null)
+            {
+                g_file.SaveRaw(data);
+            }
+            else
+            {
+                Debug.LogError("The static loading and saving system needs to be initialized before it can be used in the project.");
+            }
         }
 
         public static void SaveInto<T>(string key, T data, string path)
@@ -185,7 +261,7 @@ namespace CoreEngine.Data
         {
             if (autoSave)
             {
-                g_file.Save(g_data, g_encryption);
+                g_file.Save(g_data, encryption);
             }
         }
         #endregion

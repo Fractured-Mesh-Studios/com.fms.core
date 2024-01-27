@@ -9,7 +9,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using Debug = DebugEngine.Debug;
-using System.Xml.Linq;
 
 namespace CoreEngine.Data
 {

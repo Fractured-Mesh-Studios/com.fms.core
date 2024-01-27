@@ -7,7 +7,12 @@ namespace CoreEngine.Data
 {
     public class AesOperation
     {
+        public const int ALGORITHM_BASE = 64;
+        public const string IV = m_iv;
+        public const string KEY = m_key;
+
         private const string m_iv = "aEM5puDebU+PFKrJ2vPkWQ==";
+        private const string m_key = "ZzP5rMHiMkWzGzh8fHP9JQ==";
 
         public static string EncryptString(string key, string plainText)
         {

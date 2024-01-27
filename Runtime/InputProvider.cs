@@ -3,6 +3,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using Debug = DebugEngine.Debug;
 
 namespace CoreEngine
@@ -29,7 +30,7 @@ namespace CoreEngine
         private InputActionMap m_map;
         private InputActionRebindingExtensions.RebindingOperation m_operation;
         private bool m_overInterface;
-        internal InputValue m_inputValue;
+        private InputValue m_inputValue;
 
         private void OnEnable()
         {
@@ -102,7 +103,6 @@ namespace CoreEngine
         }
         #endregion
 
-
         private void AddMessage(InputAction.CallbackContext context)
         {
             if (!overInterface && m_overInterface) { return; }
@@ -153,12 +153,12 @@ namespace CoreEngine
 
         #region Rebinding
 
-        public bool Rebind(string ActionName, System.Action OnComplete)
+        public bool Rebind(string ActionName, Action OnComplete)
         {
             return Rebind(ActionName, OnComplete, "Mouse");
         }
 
-        public bool Rebind(string ActionName, System.Action OnComplete, string Exclude)
+        public bool Rebind(string ActionName, Action OnComplete, string Exclude)
         {
             if(m_operation != null)
             {
@@ -186,6 +186,15 @@ namespace CoreEngine
             m_operation = null;
 
             Debug.Log("Rebind Completed", gameObject, m_enableDebug);
+        }
+
+        #endregion
+
+        #region STATIC
+
+        public static bool GetAnyKeyDown()
+        {
+            return Keyboard.current.anyKey.IsPressed();
         }
 
         #endregion

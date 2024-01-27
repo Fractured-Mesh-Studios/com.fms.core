@@ -74,6 +74,31 @@ namespace CoreEngine.Data
             return loadedData;
         }
 
+        public string LoadRaw()
+        {
+            string loadedData = default;
+            string fullPath = Path.Combine(m_path, m_filename);
+            if (File.Exists(fullPath))
+            {
+                try
+                {
+                    using (FileStream FileStream = new FileStream(fullPath, FileMode.Open))
+                    {
+                        using (StreamReader Reader = new StreamReader(FileStream))
+                        {
+                            loadedData = Reader.ReadToEnd();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+
+            return loadedData;
+        }
+
         public void Save<T>(T data, bool encrypted = false) 
         {
             JsonSerializerSettings settings = new JsonSerializerSettings();   
@@ -104,6 +129,27 @@ namespace CoreEngine.Data
                 }
 
             } catch(Exception e) {
+                Debug.LogException(e);
+            }
+        }
+
+        public void SaveRaw(string data)
+        {
+            string fullPath = Path.Combine(m_path, m_filename);
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+
+                using (FileStream fs = new FileStream(fullPath, FileMode.Create))
+                {
+                    using (StreamWriter writer = new StreamWriter(fs))
+                    {
+                        writer.Write(data);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
                 Debug.LogException(e);
             }
         }
