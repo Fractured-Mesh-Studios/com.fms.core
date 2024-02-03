@@ -4,20 +4,21 @@ using System.Collections.Generic;
 
 using Debug = DebugEngine.Debug;
 using System.Linq;
-using Codice.Client.BaseCommands.BranchExplorer;
-using System.Diagnostics.Tracing;
-using PlasticPipe.PlasticProtocol.Messages;
-using static Codice.CM.Common.CmCallContext;
 
 namespace CoreEngine.Occlusion
 {
     public class Occludee : MonoBehaviour
     {
-        public bool detectRenderer = true;
         public Vector3 expand = Vector3.one;
         public LayerMask mask;
         public float coldown = 0.5f;
-        public float tick = 0.01f;
+        public UpdateMethod updateMethod;
+
+        public System.Action onEnable;
+        public System.Action onDisable;
+
+        public float maxDistance = 50f;
+        public float threshold = 1f;
 
         public GameObject[] objects;
         public Behaviour[] behaviors;
@@ -25,63 +26,90 @@ namespace CoreEngine.Occlusion
         //private
         private bool m_isVisible = true;
         private bool m_canChange = true;
+
+        //plane
         private bool m_planeValid = false;
-        private bool m_planeCache = false;
+        private bool m_planeLastValid = false;
 
         private Renderer[] m_renderer;
-        private Collider[] m_collider;
+
         private Camera m_camera;
         private RaycastHit m_hit;
         private Plane[] m_plane;
+        private Bounds m_bounds;
 
         public bool isVisible { get { return m_isVisible; } }
 
-        void Awake()
+        #region UNITY
+        private void Awake()
         {
             m_camera = Camera.main;
-            m_renderer = DetectComponents<Renderer>();
-            m_collider = DetectComponents<Collider>();
 
-            if(m_renderer == null) { Debug.LogError("Renderers not detected on awake", gameObject); }
-            if(m_collider == null) { Debug.LogError("Colliders not detected on awakke", gameObject); }
+            m_renderer = DetectComponents<Renderer>();
+            if(m_renderer == null) 
+            {
+                if (!isVisible)
+                {
+                    Enable();
+                    m_renderer = DetectComponents<Renderer>();
+                    Disable();
+                }
+                else
+                {
+                    Debug.LogError("Renderers not detected on awake", gameObject);
+                }
+            }
+
+            m_planeLastValid = !m_planeValid;
         }
 
         private void Update()
         {
-            Bounds bounds = GetBounds();
+            if(updateMethod == UpdateMethod.Update)
+            {
+                CalculateOcclusion();
+            }
+        }
 
+        private void FixedUpdate()
+        {
+            if (updateMethod == UpdateMethod.FixedUpdate)
+            {
+                CalculateOcclusion();
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (updateMethod == UpdateMethod.LateUpdate)
+            {
+                CalculateOcclusion();
+            }
+        }
+        #endregion
+
+        #region OCCLUSION
+        private void CalculateOcclusion()
+        {
             m_plane = GeometryUtility.CalculateFrustumPlanes(m_camera);
             m_planeValid = GeometryUtility.TestPlanesAABB(m_plane, GetBounds());
 
             Vector3 start = m_camera.transform.position;
             Vector3 end = transform.position;
 
-            if (m_planeValid)
+            if (Vector3.Distance(start, end) > maxDistance)
             {
-                if (CalculateBoundPoints(0.5f))
+                if (m_planeValid != m_planeLastValid)
                 {
-                    Debug.Log("Visible".Color(Color.green));
-                    Enable();
-                } 
-                else 
-                {
-                    Debug.Log("Invisible".Color(Color.red));
                     Disable();
                 }
-            }
-            else
-            {
-                Disable();
+
+                return;
             }
 
-            m_planeCache = m_planeValid;
-        }
-
-        /*private void CalculateVisibility(Vector3 start, Vector3 end)
-        {
-            if (Physics.Linecast(start, end, out m_hit, mask))
+            if (m_planeValid != m_planeLastValid)
             {
-                if (m_collider.Contains(m_hit.collider))
+                if (m_planeValid)
                 {
                     Enable();
                 }
@@ -90,10 +118,17 @@ namespace CoreEngine.Occlusion
                     Disable();
                 }
             }
-        }*/
 
-        private bool Visibility()
+            m_planeLastValid = m_planeValid;
+        }
+
+        private bool CalculateVisibility()
         {
+            #if UNITY_EDITOR
+            if (Camera.current != null) 
+                return false;
+            #endif
+
             int count = 0;
             for(int i = 0;i < m_renderer.Length; i++)
             {
@@ -112,7 +147,8 @@ namespace CoreEngine.Occlusion
             var m_boundPoint = GetBounds().GetBoundPoints();
             for (int i = 0; i < m_boundPoint.Length; i++)
             {
-                current = transform.TransformPoint(m_boundPoint[i]);
+                //current = transform.TransformPoint(m_boundPoint[i]);
+                current = m_boundPoint[i];
                 distance = Vector3.Distance(start, current);
 
                 if (Physics.Linecast(start, current, out m_hit, mask))
@@ -133,10 +169,26 @@ namespace CoreEngine.Occlusion
                 else { count += (distance < max) ? 1 : 0; }
             }
 
-            return count > 0;
+            return count != 0;
         }
 
-        public void Enable()
+        private bool CalculateBlock(Vector3 start, Vector3 end, float radius)
+        {
+            Vector3 direction = end - start;
+            float distance = Vector3.Distance(start, end);
+            Ray ray = new Ray(start, direction.normalized);
+            if(Physics.SphereCast(ray, radius, distance + 1f, mask))
+            {
+                if (Vector3.Distance(start, m_hit.point) < distance - threshold)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public virtual void Enable()
         {
             if (m_canChange && !m_isVisible)
             {
@@ -157,7 +209,7 @@ namespace CoreEngine.Occlusion
             }
         }
 
-        public void Disable()
+        public virtual void Disable()
         {
             if (m_canChange && m_isVisible)
             {
@@ -185,6 +237,8 @@ namespace CoreEngine.Occlusion
 
         public Bounds GetBounds(Vector3 expand)
         {
+            if(m_renderer == null) { return new Bounds(); }
+            
             Bounds current = new Bounds();
             float maxMagnitude = 0f;
 
@@ -199,23 +253,22 @@ namespace CoreEngine.Occlusion
             }
 
             current.Expand(expand);
+            current.center = transform.position;
             return current;
         }
-
-        public Collider[] GetColliders()
-        {
-            return m_collider;
-        }
+        #endregion
 
         #region CALLBACK
         private void OnOccludeeEnable()
         {
-            m_canChange = true; 
+            m_canChange = true;
+            onEnable?.Invoke();
         }
 
         private void OnOccludeeDisable()
         {
             m_canChange = true;
+            onDisable?.Invoke();
         }
         #endregion
 
@@ -230,66 +283,12 @@ namespace CoreEngine.Occlusion
         #endregion
 
         #region GIZMOS
-        private void DrawBoundsGizmos(float threshold)
+        private void OnDrawGizmosSelected()
         {
-            Vector3 start = m_camera.transform.position;
-            Vector3 current = Vector3.zero;
-            float distance, subDistance;
-
-            var m_boundPoint = GetBounds().GetBoundPoints();
-            for (int i = 0; i < m_boundPoint.Length; i++)
-            {
-                Gizmos.color = Color.red;
-                //current = m_boundPoint[i] + transform.position;
-                current = transform.TransformPoint(m_boundPoint[i]);
-
-                if (Physics.Linecast(start, current, out m_hit, mask))
-                {
-                    distance = Vector3.Distance(start, current);
-                    subDistance = Mathf.Abs(distance - m_hit.distance);
-
-                    if (subDistance < threshold)
-                    {
-                        Gizmos.color = Color.green;
-                    }
-                    else
-                    {
-
-                    }
-
-                    Gizmos.DrawLine(start, m_hit.point);
-                    Gizmos.DrawSphere(m_hit.point, 0.1f);
-                }
-
-                //Gizmos.DrawSphere(current, 0.1f);
-                //Gizmos.DrawLine(start, current);
-            }
-        }
-
-        private void OnDrawGizmos()
-        {
-            if (m_camera)
-            {
-                DrawBoundsGizmos(0.2f);
-            }
-            else { m_camera = Camera.main; }
-            
-            if(m_renderer != null && m_renderer.Length > 0)
-            {
-                /*Bounds bounds = GetBounds();
-
-                foreach (var b in bounds.GetBoundPoints())
-                    Gizmos.DrawSphere(b, 0.1f);
-
-                Gizmos.color = Color.white;
-                bounds.Expand(expand);
-                Gizmos.DrawWireCube(bounds.center, bounds.size);*/
-
-            }
-            else
-            {
-                m_renderer = DetectComponents<Renderer>();
-            }
+            Bounds bounds = GetBounds();
+            Gizmos.color = Color.white;
+            bounds.Expand(expand);
+            Gizmos.DrawWireCube(bounds.center, bounds.extents);
         }
         #endregion
     }

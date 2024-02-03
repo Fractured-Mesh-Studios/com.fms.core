@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace CoreEngine
@@ -131,6 +133,13 @@ namespace CoreEngine
             return result;
         }
 
+        #endregion
+
+        #region IEnumerable
+        public static bool IsValid<T>(this IEnumerable<T>[] array)
+        {
+            return array != null && array.Any();
+        }
         #endregion
     }
 }
