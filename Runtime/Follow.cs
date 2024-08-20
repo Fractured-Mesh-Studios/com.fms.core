@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
-using Debug = DebugEngine.Debug;
 
 namespace CoreEngine
 {
@@ -48,8 +47,8 @@ namespace CoreEngine
         protected virtual void Awake()
         {
             if (GetComponentInChildren<Rigidbody>()) {
-                Debug.LogWarning("The follow object cant contains a physics component.", gameObject, enableDebug);
-                Debug.LogWarning("Deactivating script", gameObject, enableDebug);
+                Debug.LogWarning("The follow object cant contains a physics component.", gameObject);
+                Debug.LogWarning("Deactivating script", gameObject);
                 enabled = false;
             }
         }
@@ -58,8 +57,8 @@ namespace CoreEngine
         {
             if (!target)
             {
-                Debug.LogError("The target value on follow object cannot be null.", gameObject, enableDebug);
-                Debug.LogError("Deactivating script", gameObject, enableDebug);
+                Debug.LogError("The target value on follow object cannot be null.", gameObject);
+                Debug.LogError("Deactivating script", gameObject);
                 enabled = false;
             }
             

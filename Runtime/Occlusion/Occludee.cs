@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-using Debug = DebugEngine.Debug;
 using System.Linq;
 
 namespace CoreEngine.Occlusion

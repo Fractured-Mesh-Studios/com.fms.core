@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
-using Debug = DebugEngine.Debug;
 
 namespace CoreEngine
 {
@@ -45,7 +44,7 @@ namespace CoreEngine
                     Action = m_map.actions[i];
                     if (mapKeys[i])
                     {
-                        Debug.Log(("Action Added " + Action.name).Color(Color.green), gameObject, m_enableDebug);
+                        Debug.Log(("Action Added " + Action.name).Color(Color.green), gameObject);
                         Action.performed += AddMessage;
                         Action.Enable();
                     }
@@ -67,7 +66,7 @@ namespace CoreEngine
                     Action = m_map.actions[i];
                     if (Action.enabled)
                     {
-                        Debug.Log(("Action Removed " + Action.name).Color(Color.red), gameObject, m_enableDebug);
+                        Debug.Log(("Action Removed " + Action.name).Color(Color.red), gameObject);
                         Action.performed -= AddMessage;
                         Action.Disable();
                     }
@@ -147,7 +146,7 @@ namespace CoreEngine
                     Keys++;
                 }
 
-                Debug.Log("Generated " + Keys + " Keys", gameObject, m_enableDebug);
+                Debug.Log("Generated " + Keys + " Keys", gameObject);
             }
         }
 
@@ -162,7 +161,7 @@ namespace CoreEngine
         {
             if(m_operation != null)
             {
-                Debug.LogError("Current Rebinding Operation Running <"+m_operation.action.name+">", gameObject, m_enableDebug);
+                Debug.LogError("Current Rebinding Operation Running <"+m_operation.action.name+">", gameObject);
                 return false;
             }
 
@@ -185,7 +184,7 @@ namespace CoreEngine
             m_operation.Dispose();
             m_operation = null;
 
-            Debug.Log("Rebind Completed", gameObject, m_enableDebug);
+            Debug.Log("Rebind Completed", gameObject);
         }
 
         #endregion

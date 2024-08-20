@@ -8,8 +8,6 @@ using UnityEngine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using Debug = DebugEngine.Debug;
-
 namespace CoreEngine.Data
 {
     public class ObjectLoader : MonoBehaviour

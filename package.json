@@ -1,6 +1,6 @@
 {
   "name": "com.fms.core",
-  "version": "0.3.95",
+  "version": "0.4.0",
   "displayName": "Core",
   "description": "Author: Jorge Nauel Gerones.\nThis plugin is a base of utilities for games created with the Unity graphics engine.",
   "unity": "2021.1",
@@ -23,6 +23,7 @@
     "url": "https://www.unity3d.com"
   },
   "dependencies": {
-    "com.unity.inputsystem": ""
+    "com.unity.inputsystem": "1.3.0",
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
   }
 }
