@@ -1,8 +1,8 @@
-using CoreEngine.Occlusion;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using CoreEngine.Occlusion;
 
 [RequireComponent(typeof(Occludee))]
 public class OccludeeEvent : MonoBehaviour

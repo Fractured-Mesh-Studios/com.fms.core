@@ -1,18 +1,7 @@
-
 using System;
 using System.IO;
-using System.Text;
-using System.Security.Cryptography;
-
 using UnityEngine;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace CoreEngine.Data
 {
