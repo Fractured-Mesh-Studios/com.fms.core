@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 using UnityEngine;
-using Newtonsoft.Json;
+using CoreEngine.Interfaces;
+using CoreEngine.Data.Serializer;
 
 namespace CoreEngine.Data
 {
@@ -10,12 +11,14 @@ namespace CoreEngine.Data
         private string m_path;
         private string m_filename;
         private string m_key;
+        private ISerialization m_serializer;
 
         public FileDataHandler(string path, string name)
         {
             m_path = path;
             m_filename = name;
             m_key = string.Empty;
+
         }
 
         public FileDataHandler(string path, string name, string key)
@@ -23,15 +26,20 @@ namespace CoreEngine.Data
             m_path = path;
             m_filename = name;
             m_key = key;
+            m_serializer = new JsonSerializer();
         }
 
+        public FileDataHandler(string path, string name, string key, ISerialization serializer)
+        {
+            m_path = path;
+            m_filename = name;
+            m_key = key;
+            m_serializer = serializer;
+        }
+
+        #region LOAD
         public T Load<T>(bool encrypted = false)
         {
-            JsonSerializerSettings settings = new JsonSerializerSettings();
-            settings.Formatting = Formatting.Indented;
-            settings.NullValueHandling = NullValueHandling.Include;
-            settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-
             T loadedData = default;
             string fullPath = Path.Combine(m_path, m_filename);
             if (File.Exists(fullPath))
@@ -52,12 +60,16 @@ namespace CoreEngine.Data
                                 dataToLoad = Reader.ReadToEnd();
                             }
                         
-                            loadedData = JsonConvert.DeserializeObject<T>(dataToLoad, settings);
+                            loadedData = m_serializer.Deserialize<T>(dataToLoad);
                         }
                     }
                 } catch (Exception e) {
                     Debug.LogException(e);
                 }
+            }
+            else
+            {
+                throw new FileNotFoundException(null, m_filename);
             }
 
             return loadedData;
@@ -87,20 +99,17 @@ namespace CoreEngine.Data
 
             return loadedData;
         }
+        #endregion
 
+        #region SAVE
         public void Save<T>(T data, bool encrypted = false) 
         {
-            JsonSerializerSettings settings = new JsonSerializerSettings();   
-            settings.Formatting = Formatting.Indented;
-            settings.NullValueHandling = NullValueHandling.Include;
-            settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-
             string fullPath = Path.Combine(m_path, m_filename);
             try 
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
             
-                string dataToStore = JsonConvert.SerializeObject(data, settings);
+                string dataToStore = m_serializer.Serialize(data);
 
                 using (FileStream fs = new FileStream(fullPath, FileMode.Create))
                 {
@@ -142,15 +151,11 @@ namespace CoreEngine.Data
                 Debug.LogException(e);
             }
         }
+        #endregion
 
         private void WriteEncryptedData<T>(T data, FileStream stream)
         {
-            JsonSerializerSettings settings = new JsonSerializerSettings();
-            settings.Formatting = Formatting.Indented;
-            settings.NullValueHandling = NullValueHandling.Include;
-            settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-
-            string text = JsonConvert.SerializeObject(data, settings);
+            string text = m_serializer.Serialize(data);
 
             if(m_key == string.Empty)
             {
@@ -163,11 +168,6 @@ namespace CoreEngine.Data
 
         private T ReadEncryptedData<T>(string path)
         {
-            JsonSerializerSettings settings = new JsonSerializerSettings();
-            settings.Formatting = Formatting.Indented;
-            settings.NullValueHandling = NullValueHandling.Include;
-            settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            
             byte[] data = File.ReadAllBytes(path);
 
             if (m_key == string.Empty)
@@ -178,7 +178,7 @@ namespace CoreEngine.Data
 
             string result = AesOperation.DecryptString(m_key, data);
 
-            return JsonConvert.DeserializeObject<T>(result);
+            return m_serializer.Deserialize<T>(result);
         }
 
     }

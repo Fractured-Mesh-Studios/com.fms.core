@@ -59,6 +59,18 @@ namespace CoreEngine
             src.a = dst.a = 0.0f;
             return Compare(src, dst, tolerance);
         }
+
+        public static string ToHtml(this Color src, bool includeAlpha = false)
+        {
+            if (includeAlpha)
+            {
+                return $"#{ColorUtility.ToHtmlStringRGBA(src)}";
+            }
+            else
+            {
+                return $"#{ColorUtility.ToHtmlStringRGB(src)}";
+            }
+        }
         #endregion
 
         #region Vector3

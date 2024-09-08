@@ -99,6 +99,11 @@ namespace CoreEngine.Data
                     }
                 }
             }
+            else
+            {
+                throw new FileNotFoundException(null, m_path);
+            }
+
             return true;
         }
 

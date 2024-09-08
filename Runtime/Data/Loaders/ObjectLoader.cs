@@ -12,12 +12,30 @@ namespace CoreEngine.Data
 {
     public class ObjectLoader : MonoBehaviour
     {
+        public enum ObjectLoaderFileName
+        {
+            UseId,
+            UseName,
+            UseTypeName,
+            UseCustom,
+        }
+
+        private class SerializedData : Dictionary<string, Dictionary<string, object>> { }
+
+        private const string m_key = "ZzP5rMHiMkWzGzh8fHP9JQ==";
+
         public bool encryption = false;
+        public long id;
+        public string folder = "Save";
+        [HideInInspector] public string fileName = string.Empty;
+
+        public ObjectLoaderFileName fileNameMode = ObjectLoaderFileName.UseId;
+
         public List<Component> components = new List<Component>();
 
         private FileDataHandler m_file = null;
         private SerializedData m_data = new SerializedData();
-        private const string m_key = "ZzP5rMHiMkWzGzh8fHP9JQ==";
+        
 
         public void Load()
         {
@@ -37,9 +55,20 @@ namespace CoreEngine.Data
         private void Initialize()
         {
             string path = Application.persistentDataPath;
-            string name = $"{gameObject.name}.data";
 
-            m_file = new FileDataHandler(path, name, m_key);
+            string folder = $"/{this.folder}";
+
+            string name;
+            switch (fileNameMode)
+            {
+                case ObjectLoaderFileName.UseName: name = $"{gameObject.name}.data"; break; 
+                case ObjectLoaderFileName.UseTypeName: name = $"{GetType().Name}.data"; break;
+                case ObjectLoaderFileName.UseCustom: name = $"{fileName}.data"; break;
+                default: name = $"{id}.data"; break;
+            }
+            
+            m_file = new FileDataHandler(path + folder, name, m_key);
+            m_data = new SerializedData();
         }
 
         private void OnLoad()
@@ -150,7 +179,7 @@ namespace CoreEngine.Data
 
             }
 
-            m_file.Save(m_data);
+            m_file.Save(m_data, encryption);
         }
         #endregion
 
@@ -257,5 +286,4 @@ namespace CoreEngine.Data
         #endregion
     }
 
-    public class SerializedData : Dictionary<string, Dictionary<string, object>> { }
 }
