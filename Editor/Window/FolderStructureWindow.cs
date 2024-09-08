@@ -10,7 +10,7 @@ namespace CoreEditor.Window
 {
     public class FolderStructureWindow : CoreWindow
     {
-        [MenuItem("[FMS] - Utility/Project Structure")]
+        [MenuItem("Tools/Project Structure")]
         private static void ShowWindow()
         {
             GUIContent content = new GUIContent("Project Structure", "Customize Project Folder Structure Helper");

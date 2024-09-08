@@ -10,10 +10,10 @@ namespace CoreEditor
         private Vector2 scrollPos;
         private Dictionary<string, string> prefs = new Dictionary<string, string>();
 
-        [MenuItem("Tools/EditorPrefs Inspector")]
+        [MenuItem("Tools/Editor Preferences")]
         public static void ShowWindow()
         {
-            GetWindow<EditorPrefsWindow>("EditorPrefs Inspector");
+            GetWindow<EditorPrefsWindow>("Editor Preferences");
         }
 
         private void OnEnable()
@@ -24,7 +24,7 @@ namespace CoreEditor
 
         private void OnGUI()
         {
-            GUILayout.Label("EditorPrefs Inspector", EditorStyles.boldLabel);
+            GUILayout.Label("Editor Preferences", EditorStyles.boldLabel);
 
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 
