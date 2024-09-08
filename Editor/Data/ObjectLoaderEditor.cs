@@ -37,15 +37,16 @@ namespace CoreEditor.Data
         public override void OnInspectorGUI()
         {
             KeyInspector();
-            
             DrawDefaultInspector();
 
+            if(m_target.components.Where(x => x.GetType() == typeof(ObjectLoader)).Any())
+            {
+                EditorGUILayout.HelpBox("No Self Container Allowed", MessageType.Error);
+            }
+
             GUILayout.Space(10);
-
             IdInspector();
-
             LoadSaveInspector();
-
             ConfigInspector();
 
             serializedObject.ApplyModifiedProperties();
