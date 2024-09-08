@@ -7,6 +7,7 @@ using UnityEngine;
 //Newtonsoft
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.IO;
 
 namespace CoreEngine.Data
 {
@@ -16,8 +17,7 @@ namespace CoreEngine.Data
         {
             UseId,
             UseName,
-            UseTypeName,
-            UseCustom,
+            UseFileName,
         }
 
         private class SerializedData : Dictionary<string, Dictionary<string, object>> { }
@@ -27,7 +27,7 @@ namespace CoreEngine.Data
         public bool encryption = false;
         public long id;
         public string folder = "Save";
-        [HideInInspector] public string fileName = string.Empty;
+        public string fileName = string.Empty;
 
         public ObjectLoaderFileName fileNameMode = ObjectLoaderFileName.UseId;
 
@@ -35,7 +35,6 @@ namespace CoreEngine.Data
 
         private FileDataHandler m_file = null;
         private SerializedData m_data = new SerializedData();
-        
 
         public void Load()
         {
@@ -51,7 +50,27 @@ namespace CoreEngine.Data
             OnSave();
         }
 
+        public bool Delete()
+        {
+            Initialize();
+
+            return m_file.DeleteFile();
+        }
+
         #region PRIVATE
+        private string GetHierarchyPath()
+        {
+            string path = gameObject.name;
+            Transform currentTransform = gameObject.transform;
+
+            while (currentTransform.parent != null)
+            {
+                currentTransform = currentTransform.parent;
+                path = currentTransform.name + "/" + path;
+            }
+            return path;
+        }
+
         private void Initialize()
         {
             string path = Application.persistentDataPath;
@@ -61,10 +80,10 @@ namespace CoreEngine.Data
             string name;
             switch (fileNameMode)
             {
-                case ObjectLoaderFileName.UseName: name = $"{gameObject.name}.data"; break; 
-                case ObjectLoaderFileName.UseTypeName: name = $"{GetType().Name}.data"; break;
-                case ObjectLoaderFileName.UseCustom: name = $"{fileName}.data"; break;
-                default: name = $"{id}.data"; break;
+                case ObjectLoaderFileName.UseId: name = $"{id}.data"; break;
+                case ObjectLoaderFileName.UseName: name = $"{GetHierarchyPath()}.data"; break; 
+                case ObjectLoaderFileName.UseFileName: name = $"{fileName}.data"; break;
+                default: name = string.Empty; break;
             }
             
             m_file = new FileDataHandler(path + folder, name, m_key);
@@ -136,6 +155,9 @@ namespace CoreEngine.Data
             for (int i = 0; i < components.Count; i++)
             {
                 var element = components[i];
+
+                if (element == null) continue;
+
                 var type = element.GetType();
 
                 if (!m_data.ContainsKey(type.Name))

@@ -118,6 +118,10 @@ namespace CoreEditor.Data
                 var components = m_target.GetComponents<Component>();
                 m_target.components = components.Where(x => x != m_target).ToList();
             }
+            if (GUILayout.Button("Delete", GUILayout.MaxWidth(MAX_BTN_WIDTH)))
+            {
+                m_target.Delete();
+            }
             EditorGUILayout.EndHorizontal();
         }
     }

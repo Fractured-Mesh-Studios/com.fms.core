@@ -18,7 +18,6 @@ namespace CoreEngine.Data
             m_path = path;
             m_filename = name;
             m_key = string.Empty;
-
         }
 
         public FileDataHandler(string path, string name, string key)
@@ -149,6 +148,36 @@ namespace CoreEngine.Data
             catch (Exception e)
             {
                 Debug.LogException(e);
+            }
+        }
+        #endregion
+
+        #region DELETE
+        public bool Delete()
+        {
+            if (Directory.Exists(m_path))
+            {
+                Directory.Delete(m_path, true);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool DeleteFile()
+        {
+            string fullPath = Path.Combine(m_path, m_filename);
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+                return true;
+            }
+            else
+            {
+                throw new FileNotFoundException(null, fullPath);
             }
         }
         #endregion
