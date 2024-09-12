@@ -40,7 +40,7 @@ namespace CoreEngine.Event
         private static readonly EventCallback s_callbacks = new EventCallback();
 
         #region SUBSCRIBE
-        public static void Subscribe<T>(Action<T> callback) where T : IBaseEvent
+        public static void Register<T>(Action<T> callback) where T : IBaseEvent
         {
             var callbackType = typeof(T);
 
@@ -56,7 +56,7 @@ namespace CoreEngine.Event
             callbackList.Add(genericCallback);
         }
 
-        public static void UnSubscribe<T>(Action<T> callback) where T : IBaseEvent
+        public static void UnRegister<T>(Action<T> callback) where T : IBaseEvent
         {
             var callbackType = typeof(T);
 
@@ -95,11 +95,6 @@ namespace CoreEngine.Event
             {
                 tempCallbacks[i].Trigger(eventObject);
             }
-
-            /*foreach (var callback in tempCallbacks)
-            {
-                callback.Trigger(eventObject);
-            }*/
         }
         #endregion
     }
