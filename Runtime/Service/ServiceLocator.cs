@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Object = UnityEngine.Object;
@@ -40,13 +41,13 @@ namespace CoreEngine
         /// <typeparam name="Type">The type for the serach</typeparam>
         /// <param name="inactive">Determines if can search inactive objects</param>
         /// <returns>Instance of the service</returns>
-        public static Type GetService<Type>(bool inactive = false) where Type : Object, IBaseService
+        public static Type GetSlowService<Type>(FindObjectsInactive find = FindObjectsInactive.Include) where Type : Object, IBaseService
         {
             Assert.IsNotNull(s_services, "Someone has requested a service prior to the locator's intialization.");
 
             if (!s_services.ContainsKey(typeof(Type)))
             {
-                Type var = GameObject.FindObjectOfType<Type>(inactive);
+                Type var = GameObject.FindAnyObjectByType<Type>(find);
 
                 if (ReferenceEquals(var, null))
                 {
@@ -54,7 +55,6 @@ namespace CoreEngine
                 }
 
                 s_services.Add(typeof(Type), var);
-
             }
 
             Assert.IsTrue(s_services.ContainsKey(typeof(Type)), "Could not find service: " + typeof(Type));
@@ -100,11 +100,55 @@ namespace CoreEngine
         }
 
         /// <summary>
+        /// Unregisters the service from the current service locator (by reference).
+        /// </summary>
+        /// <typeparam name="Type"></typeparam>
+        /// <param name="service"></param>
+        public static void Unregister<Type>(Type service) where Type : IBaseService
+        {
+            string key = typeof(Type).Name;
+            if (!s_services.ContainsKey(service.GetType()))
+            {
+                Debug.LogAssertion($"Attempted to unregister service of type {key} which is not registered with the {typeof(ServiceLocator).Name}.");
+                return;
+            }
+
+            s_services.Remove(typeof(Type));
+        }
+
+        /// <summary>
         /// Clear all instances found of all services from the current service locator.
         /// </summary>
         public static void Clear()
         {
+            if (Debug.isDebugBuild)
+            {
+                Debug.Log($"Cleared {s_services.Count} Services");
+            }
             s_services.Clear();
+        }
+
+        /// <summary>
+        /// Show all registered services type names
+        /// </summary>
+        public static void ShowServices()
+        {
+            if (Debug.isDebugBuild)
+            {
+                foreach (var service in s_services)
+                {
+                    Debug.Log($"Service: '{service.Key.Name}' Located".Color(Color.green));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get all the active and registered services.
+        /// </summary>
+        /// <returns></returns>
+        public static IBaseService[] GetServices()
+        {
+            return s_services.Values.ToArray();
         }
     }
 }
