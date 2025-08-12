@@ -1,14 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.InputSystem;
-using UnityEditor;
-
 using CoreEngine;
 using UnityEngine;
 using System.Linq;
-using System;
 using UnityEngine.EventSystems;
-using CodiceApp.EventTracking;
+using UnityEngine.InputSystem;
+using UnityEditor;
 
 [CustomEditor(typeof(InputProvider))]
 public class InputProviderEditor : Editor

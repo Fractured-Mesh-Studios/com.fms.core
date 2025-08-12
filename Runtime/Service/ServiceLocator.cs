@@ -48,6 +48,7 @@ namespace CoreEngine
             if (!s_services.ContainsKey(typeof(Type)))
             {
                 Type var = GameObject.FindAnyObjectByType<Type>(find);
+                if(var )
 
                 if (ReferenceEquals(var, null))
                 {
@@ -56,11 +57,20 @@ namespace CoreEngine
 
                 s_services.Add(typeof(Type), var);
             }
+            else
+            {
+                bool inactive = FindObjectsInactive.Include == find;
+                Type var = GameObject.FindObjectOfType<Type>(inactive);
+
+                if (ReferenceEquals(var, null))
+                {
+                    Assert.IsNull(var, $"{typeof(Type).Name} service is not found.");
+                }
+            }
 
             Assert.IsTrue(s_services.ContainsKey(typeof(Type)), "Could not find service: " + typeof(Type));
             var service = (Type)s_services[typeof(Type)];
 
-            Assert.IsNotNull(service, typeof(Type).Name + " could not be found.");
             return service;
         }
 
