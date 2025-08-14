@@ -43,33 +43,37 @@ namespace CoreEngine
         /// <returns>Instance of the service</returns>
         public static Type GetSlowService<Type>(FindObjectsInactive find = FindObjectsInactive.Include) where Type : Object, IBaseService
         {
+            Type service = default;
+
             Assert.IsNotNull(s_services, "Someone has requested a service prior to the locator's intialization.");
 
             if (!s_services.ContainsKey(typeof(Type)))
             {
                 Type var = GameObject.FindAnyObjectByType<Type>(find);
-                if(var )
-
+                
                 if (ReferenceEquals(var, null))
                 {
-                    Assert.IsNull(var, $"{typeof(Type).Name} service is not found.");
+                    Assert.IsNull(var, $"{typeof(Type).Name} service is not found. using FindObjectOfType<Type>()");
+
+                    //Alternative Search
+                    bool inactive = FindObjectsInactive.Include == find;
+                    var = GameObject.FindObjectOfType<Type>(inactive);
+
+                    if (ReferenceEquals(var, null))
+                    {
+                        Assert.IsNull(var, $"{typeof(Type).Name} service is not found.");
+                    }
                 }
 
+
                 s_services.Add(typeof(Type), var);
+
+                service = var;
             }
             else
             {
-                bool inactive = FindObjectsInactive.Include == find;
-                Type var = GameObject.FindObjectOfType<Type>(inactive);
-
-                if (ReferenceEquals(var, null))
-                {
-                    Assert.IsNull(var, $"{typeof(Type).Name} service is not found.");
-                }
+                service = (Type)s_services[typeof(Type)];
             }
-
-            Assert.IsTrue(s_services.ContainsKey(typeof(Type)), "Could not find service: " + typeof(Type));
-            var service = (Type)s_services[typeof(Type)];
 
             return service;
         }
