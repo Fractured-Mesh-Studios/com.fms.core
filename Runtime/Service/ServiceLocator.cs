@@ -1,3 +1,4 @@
+using LoggerEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -50,8 +51,8 @@ namespace CoreEngine
             if (!s_services.ContainsKey(typeof(Type)))
             {
                 Type var = GameObject.FindAnyObjectByType<Type>(find);
-                
-                if (ReferenceEquals(var, null))
+
+                if (var == null)
                 {
                     Assert.IsNull(var, $"{typeof(Type).Name} service is not found. using FindObjectOfType<Type>()");
 
@@ -59,12 +60,11 @@ namespace CoreEngine
                     bool inactive = FindObjectsInactive.Include == find;
                     var = GameObject.FindObjectOfType<Type>(inactive);
 
-                    if (ReferenceEquals(var, null))
+                    if (var == null)
                     {
                         Assert.IsNull(var, $"{typeof(Type).Name} service is not found.");
                     }
                 }
-
 
                 s_services.Add(typeof(Type), var);
 
@@ -73,6 +73,31 @@ namespace CoreEngine
             else
             {
                 service = (Type)s_services[typeof(Type)];
+
+                if (service == null)
+                {
+                    service = GameObject.FindAnyObjectByType<Type>(find);
+
+                    s_services[typeof(Type)] = service;
+                }
+
+                if (service == null)
+                {
+                    DebugClient.Log("null");
+
+                    Assert.IsNull(service, $"{typeof(Type).Name} service is not found. using FindObjectOfType<Type>()");
+
+                    //Alternative Search
+                    bool inactive = FindObjectsInactive.Include == find;
+                    service = GameObject.FindObjectOfType<Type>(inactive);
+
+                    if (service == null)
+                    {
+                        Assert.IsNull(service, $"{typeof(Type).Name} service is not found.");
+                    }
+
+                    s_services[typeof(Type)] = service;
+                }
             }
 
             return service;
