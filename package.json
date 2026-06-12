@@ -1,6 +1,6 @@
 {
   "name": "com.fms.core",
-  "version": "0.4.11",
+  "version": "0.4.2",
   "displayName": "Core",
   "description": "Author: Jorge Nauel Gerones.\nThis plugin is a base of utilities for games created with the Unity graphics engine.",
   "unity": "2021.1",
@@ -19,8 +19,8 @@
   ],
   "author": {
     "name": "Fractured Mesh Studios",
-    "email": "gerones.jorge@gmail.com",
-    "url": "https://www.unity3d.com"
+    "url": "https://www.unity3d.com",
+    "email": "gerones.jorge@gmail.com"
   },
   "dependencies": {
     "com.unity.inputsystem": "1.3.0"
