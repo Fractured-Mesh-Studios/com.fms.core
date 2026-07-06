@@ -40,7 +40,12 @@ namespace CoreEngine
                 s_instance = this as Type;
 
                 if (dontDestroyOnLoad)
-                    DontDestroyOnLoad(gameObject);
+                {
+                    if (!TryGetComponent(out DontDestroy ddol))
+                    {
+                        gameObject.AddComponent<DontDestroy>();
+                    }
+                }
             }
             else
             {
@@ -61,5 +66,18 @@ namespace CoreEngine
             s_instance = null;
         }
         #endregion
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (dontDestroyOnLoad)
+            {
+                if (!TryGetComponent(out DontDestroy ddol))
+                {
+                    gameObject.AddComponent<DontDestroy>();
+                }
+            }
+        }
+#endif
     }
 }
